@@ -59,5 +59,11 @@ suite =
             , test "parse 33.333333333" <|
                 \_ ->
                     Expect.equal (D.fromString RoundTowardsZero 4 "33.333333333" |> Result.map D.toString) (Err "Too much text after the decimal: 333333333")
+            , test "parse 9007199254740995" <|
+                \_ ->
+                    Expect.equal (D.fromString RoundTowardsZero 2 "9007199254740991" |> Result.map D.toString) (Err "Overflow")
+            , test "parse -9007199254740995" <|
+                \_ ->
+                    Expect.equal (D.fromString RoundTowardsZero 2 "-9007199254740991" |> Result.map D.toString) (Err "Underflow")
             ]
         ]

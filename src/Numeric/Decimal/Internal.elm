@@ -13,10 +13,14 @@ import Parser exposing ((|.), (|=), Parser)
 
 
 type Decimal r p
-    = Decimal r Int p
+    = Decimal r Nat p
 
 
-succeed : r -> Int -> p -> Decimal r p
+type alias Nat =
+    Int
+
+
+succeed : r -> Nat -> p -> Decimal r p
 succeed r s p =
     Decimal r s p
 
@@ -36,20 +40,9 @@ andMap =
     map2 (|>)
 
 
-
---
-
-
-fromInt : r -> Int -> Int -> Decimal r Int
+fromInt : r -> Nat -> Int -> Decimal r Int
 fromInt r s p =
     Decimal r s (p * 10 ^ s)
-
-
-fromInts : r -> Int -> Int -> Int -> Decimal r Int
-fromInts r s x y =
-    (x * 10 ^ s)
-        + y
-        |> Decimal r s
 
 
 
@@ -59,6 +52,16 @@ fromInts r s x y =
 type Bounded
     = Overflow
     | Underflow
+
+
+boundedToString : Bounded -> String
+boundedToString x =
+    case x of
+        Overflow ->
+            "Overflow"
+
+        Underflow ->
+            "Underflow"
 
 
 fromIntBounded : Int -> Result Bounded Int
@@ -73,10 +76,15 @@ fromIntBounded x =
         Ok x
 
 
-fromIntScaleBounded : r -> Int -> Int -> Result Bounded (Decimal r Int)
+fromIntScaleBounded : r -> Nat -> Int -> Result Bounded (Decimal r Int)
 fromIntScaleBounded r s x =
     fromIntBounded (x * (10 ^ s))
-        |> Result.map (fromInt r s)
+        |> Result.map (Decimal r s)
+
+
+fromIntsScaleBounded : r -> Nat -> Int -> Int -> Result Bounded (Decimal r Int)
+fromIntsScaleBounded r s x y =
+    (x * (10 ^ s)) + y |> fromIntBounded |> Result.map (Decimal r s)
 
 
 
@@ -115,7 +123,7 @@ toString (Decimal _ s p) =
 -- PARSING
 
 
-fromString : r -> Int -> String -> Result String (Decimal r Int)
+fromString : r -> Nat -> String -> Result String (Decimal r Int)
 fromString r s str =
     Parser.run (parseDecimalBounded r s) str
         |> Result.mapError deadEndsToString
@@ -135,25 +143,36 @@ deadEndsToString =
     List.foldl (\e a -> a ++ endToString e) ""
 
 
-parseDecimalBounded : r -> Int -> Parser (Decimal r Int)
+parseDecimalBounded : r -> Nat -> Parser (Decimal r Int)
 parseDecimalBounded r s =
-    Parser.succeed (constructDecimal r s)
+    Parser.succeed toCoefficient
         |= parseSign
         |= parseDigits
         |. Parser.oneOf [ Parser.symbol ".", Parser.succeed () ]
         |= parseFractionalPart s
+        |> Parser.andThen
+            (\( a, b ) ->
+                case fromIntsScaleBounded r s a b of
+                    Ok d ->
+                        Parser.succeed d
+
+                    Err e ->
+                        Parser.problem (boundedToString e)
+            )
 
 
-constructDecimal : r -> Int -> (Int -> Int) -> String -> String -> Decimal r Int
-constructDecimal r s negate decimal fractional =
+toCoefficient : (Int -> Int) -> String -> String -> ( Int, Int )
+toCoefficient negate decimal fractional =
     if String.isEmpty fractional then
-        fromInt r s (String.toInt decimal |> Maybe.map negate |> Maybe.withDefault 0)
+        String.toInt decimal
+            |> Maybe.map (negate >> (\x -> ( x, 0 )))
+            |> Maybe.withDefault ( 0, 0 )
 
     else
-        fromInts r
-            s
-            (String.toInt decimal |> Maybe.map negate |> Maybe.withDefault 0)
-            (String.toInt fractional |> Maybe.map negate |> Maybe.withDefault 0)
+        Maybe.map2 Tuple.pair
+            (String.toInt decimal |> Maybe.map negate)
+            (String.toInt fractional |> Maybe.map negate)
+            |> Maybe.withDefault ( 0, 0 )
 
 
 parseSign : Parser (Int -> Int)
@@ -171,7 +190,7 @@ parseDigits =
         |> Parser.getChompedString
 
 
-parseFractionalPart : Int -> Parser String
+parseFractionalPart : Nat -> Parser String
 parseFractionalPart s =
     Parser.oneOf
         [ parseDigits
