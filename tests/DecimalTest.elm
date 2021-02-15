@@ -1,21 +1,9 @@
 module DecimalTest exposing (suite)
 
 import Expect
+import Numeric.Decimal exposing (RoundingAlgorythm(..))
 import Numeric.Decimal.Internal as D
 import Test exposing (Test, describe, test)
-
-
-type RoundingAlgorythm
-    = RoundDown
-    | RoundUp
-    | RoundTowardsZero
-    | RoundAwayFromZero
-    | HalfUp
-    | HalfDown
-    | HalfTowardsZero
-    | HalfAwayFromZero
-    | HalfToEven
-    | HalfToOdd
 
 
 suite : Test
