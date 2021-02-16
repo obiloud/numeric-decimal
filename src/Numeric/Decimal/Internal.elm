@@ -3,10 +3,15 @@ module Numeric.Decimal.Internal exposing
     , andMap
     , fromInt
     , fromString
+    , getScale
     , map
     , map2
+    , minus
+    , plus
+    , scaleUp
     , succeed
     , toString
+    , withRounding
     )
 
 import Parser exposing ((|.), (|=), Parser)
@@ -40,9 +45,41 @@ andMap =
     map2 (|>)
 
 
+withRounding : r_ -> Decimal r p -> Decimal r_ p
+withRounding r (Decimal _ s p) =
+    Decimal r s p
+
+
+getScale : Decimal r p -> Nat
+getScale (Decimal _ s _) =
+    s
+
+
+scaleUp : Nat -> Decimal r Int -> Decimal r Int
+scaleUp k (Decimal r s p) =
+    Decimal r (s + k) (p * (10 ^ k))
+
+
+
+-- scaleUpBounded : Decimal r Int -> Result Bounded (Decimal r Int)
+-- scaleUpBounded (Decimal r s p) =
+--     fromIntBounded (p * (10 ^ s))
+--         |> Result.map (timesBounded >> Decimal r s)
+
+
 fromInt : r -> Nat -> Int -> Decimal r Int
 fromInt r s p =
     Decimal r s (p * 10 ^ s)
+
+
+plus : Decimal r Int -> Decimal r Int -> Decimal r Int
+plus =
+    map2 (+)
+
+
+minus : Decimal r Int -> Decimal r Int -> Decimal r Int
+minus =
+    map2 (-)
 
 
 
@@ -102,6 +139,12 @@ toString (Decimal _ s p) =
 
         r =
             Basics.remainderBy b p
+
+        _ =
+            Debug.log "(p, b)" ( p, b )
+
+        _ =
+            Debug.log "(q, r)" ( q, r )
 
         formatted =
             String.fromInt q ++ "." ++ String.padRight s '0' (Basics.abs r |> String.fromInt)
@@ -200,7 +243,7 @@ parseFractionalPart s =
                         Parser.problem ("Too much text after the decimal: " ++ x)
 
                     else
-                        Parser.succeed x
+                        Parser.succeed (String.padRight s '0' x)
                 )
         , Parser.succeed ""
         ]

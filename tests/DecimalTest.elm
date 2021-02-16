@@ -66,4 +66,37 @@ suite =
                 \_ ->
                     Expect.equal (D.fromString RoundTowardsZero 2 "-9007199254740991" |> Result.map D.toString) (Err "Underflow")
             ]
+        , describe "Arithmetic"
+            [ test "Add two decimals 1.2 + 2.1" <|
+                \_ ->
+                    let
+                        a =
+                            D.fromString RoundTowardsZero 2 "1.2"
+
+                        b =
+                            D.fromString RoundTowardsZero 2 "2.1"
+                    in
+                    Expect.equal (Result.map2 D.plus a b |> Result.map D.toString) (Ok "3.30")
+            , test "Add subtract decimals 1.2 - 2.1 scaled up" <|
+                \_ ->
+                    let
+                        a =
+                            D.fromString RoundTowardsZero 1 "1.2"
+
+                        b =
+                            D.fromString RoundTowardsZero 1 "2.1"
+                    in
+                    Expect.equal (Result.map2 D.minus a b |> Result.map (D.scaleUp 1 >> D.toString)) (Ok "-0.90")
+            , Test.only <|
+                test "Add subtract decimals 1.2 - 2.1" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromString RoundTowardsZero 2 "1.2"
+
+                            b =
+                                D.fromString RoundTowardsZero 2 "2.1"
+                        in
+                        Expect.equal (Result.map2 D.minus a b |> Result.map D.toString) (Ok "-0.90")
+            ]
         ]
