@@ -4,18 +4,21 @@ module Numeric.Rational exposing
     , compare
     , divide
     , fraction
+    , fromInt
     , greaterThan
     , greatestCommonDenominator
-    , int
     , inverse
     , lessThan
     , multiply
     , power
     , subtract
+    , toDenominator
     , toFloat
     , toFraction
+    , toNumerator
     , toParts
     , toString
+    , truncate
     )
 
 
@@ -23,8 +26,8 @@ type Rational
     = Rational Int Int
 
 
-int : Int -> Rational
-int n =
+fromInt : Int -> Rational
+fromInt n =
     Rational n 1
 
 
@@ -119,6 +122,21 @@ toParts (Rational n d) =
 toFraction : Rational -> { num : Int, den : Int }
 toFraction (Rational n d) =
     { num = n, den = d }
+
+
+toNumerator : Rational -> Int
+toNumerator (Rational n _) =
+    n
+
+
+toDenominator : Rational -> Int
+toDenominator (Rational _ d) =
+    d
+
+
+truncate : Rational -> Int
+truncate =
+    toParts >> .int
 
 
 toFloat : Rational -> Float

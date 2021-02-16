@@ -106,8 +106,8 @@ fromInt r s p =
 fromRational : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal Int)
 fromRational r s rational =
     let
-        { den } =
-            Rational.toFraction rational
+        den =
+            Rational.toDenominator rational
     in
     if den == 0 then
         Err "Divide by zero"
@@ -117,10 +117,10 @@ fromRational r s rational =
             d =
                 10 ^ (s + 1)
 
-            { int } =
-                Rational.multiply rational (Rational.fraction d 1) |> Rational.toParts
+            c =
+                Rational.multiply rational (Rational.fraction d 1) |> Rational.truncate
         in
-        succeed r (s + 1) int |> roundDecimal s |> Ok
+        succeed r (s + 1) c |> roundDecimal s |> Ok
 
 
 plusBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
