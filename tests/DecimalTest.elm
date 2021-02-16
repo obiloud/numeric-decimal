@@ -77,7 +77,7 @@ suite =
                             D.fromString RoundTowardsZero 2 "2.1"
                     in
                     Expect.equal (Result.map2 D.plus a b |> Result.map D.toString) (Ok "3.30")
-            , test "Add subtract decimals 1.2 - 2.1 scaled up" <|
+            , test "Subtract 1.2 - 2.1 scaled up" <|
                 \_ ->
                     let
                         a =
@@ -86,17 +86,36 @@ suite =
                         b =
                             D.fromString RoundTowardsZero 1 "2.1"
                     in
-                    Expect.equal (Result.map2 D.minus a b |> Result.map (D.scaleUp 1 >> D.toString)) (Ok "-0.90")
-            , Test.only <|
-                test "Add subtract decimals 1.2 - 2.1" <|
-                    \_ ->
-                        let
-                            a =
-                                D.fromString RoundTowardsZero 2 "1.2"
+                    Expect.equal (Result.map2 D.minus a b |> Result.map (D.scaleUp 2 >> D.toString)) (Ok "-0.90")
+            , test "Subtract 1.2 - 2.1" <|
+                \_ ->
+                    let
+                        a =
+                            D.fromString RoundTowardsZero 2 "1.2"
 
-                            b =
-                                D.fromString RoundTowardsZero 2 "2.1"
-                        in
-                        Expect.equal (Result.map2 D.minus a b |> Result.map D.toString) (Ok "-0.90")
+                        b =
+                            D.fromString RoundTowardsZero 2 "2.1"
+                    in
+                    Expect.equal (Result.map2 D.minus a b |> Result.map D.toString) (Ok "-0.90")
+            , test "Divide 124 / 4" <|
+                \_ ->
+                    let
+                        a =
+                            D.fromString RoundTowardsZero 2 "124"
+
+                        b =
+                            D.fromString RoundTowardsZero 2 "4"
+                    in
+                    Expect.equal (Result.map2 D.divide a b |> Result.andThen (Result.map D.toString)) (Ok "31.00")
+            , test "Multiply 1.25 * 4.00" <|
+                \_ ->
+                    let
+                        a =
+                            D.fromString RoundTowardsZero 2 "1.25"
+
+                        b =
+                            D.fromString RoundTowardsZero 2 "4.00"
+                    in
+                    Expect.equal (Result.map2 D.multiply a b |> Result.map D.toString) (Ok "5.00")
             ]
         ]

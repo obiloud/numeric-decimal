@@ -1,12 +1,14 @@
 module Numeric.Decimal.Internal exposing
     ( Decimal
     , andMap
+    , divide
     , fromInt
     , fromString
     , getScale
     , map
     , map2
     , minus
+    , multiply
     , plus
     , scaleUp
     , succeed
@@ -14,6 +16,7 @@ module Numeric.Decimal.Internal exposing
     , withRounding
     )
 
+import Numeric.Rational as Rational exposing (Rational)
 import Parser exposing ((|.), (|=), Parser)
 
 
@@ -45,7 +48,7 @@ andMap =
     map2 (|>)
 
 
-withRounding : r_ -> Decimal r p -> Decimal r_ p
+withRounding : r1 -> Decimal r p -> Decimal r1 p
 withRounding r (Decimal _ s p) =
     Decimal r s p
 
@@ -57,7 +60,7 @@ getScale (Decimal _ s _) =
 
 scaleUp : Nat -> Decimal r Int -> Decimal r Int
 scaleUp k (Decimal r s p) =
-    Decimal r (s + k) (p * (10 ^ k))
+    Decimal r k (p * (10 ^ Basics.abs (k - s)))
 
 
 
@@ -80,6 +83,49 @@ plus =
 minus : Decimal r Int -> Decimal r Int -> Decimal r Int
 minus =
     map2 (-)
+
+
+divide : Decimal r Int -> Decimal r Int -> Result String (Decimal r Int)
+divide (Decimal r s d1) (Decimal _ _ d2) =
+    if d2 == 0 then
+        Err "Divide by zero"
+
+    else
+        fromRational r s (Rational.fraction d1 d2)
+
+
+fromRational : r -> Nat -> Rational -> Result String (Decimal r Int)
+fromRational r s rational =
+    let
+        { num, den } =
+            Rational.toFraction rational
+    in
+    if den == 0 then
+        Err "Divide by zero"
+
+    else
+        let
+            d =
+                10 ^ (s + 1)
+
+            { int } =
+                Rational.multiply rational (Rational.fraction d 1) |> Rational.toParts
+        in
+        succeed r (s + 1) int |> roundDecimal s |> Ok
+
+
+multiply : Decimal r Int -> Decimal r Int -> Decimal r Int
+multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
+    Decimal r (s1 + s2) (d1 * d2) |> roundDecimal s1
+
+
+
+-- RoundToZero
+
+
+roundDecimal : Nat -> Decimal r Int -> Decimal r Int
+roundDecimal k (Decimal r s d) =
+    d // (10 ^ Basics.abs (s - k)) |> Decimal r k
 
 
 
@@ -139,12 +185,6 @@ toString (Decimal _ s p) =
 
         r =
             Basics.remainderBy b p
-
-        _ =
-            Debug.log "(p, b)" ( p, b )
-
-        _ =
-            Debug.log "(q, r)" ( q, r )
 
         formatted =
             String.fromInt q ++ "." ++ String.padRight s '0' (Basics.abs r |> String.fromInt)
