@@ -1,4 +1,14 @@
-module Basics.Extra exposing (even, odd, quotRem, signum)
+module Basics.Extra exposing (even, maxBound, minBound, odd, quotRem, signum)
+
+
+maxBound : Int
+maxBound =
+    2 ^ 53
+
+
+minBound : Int
+minBound =
+    -2 ^ 53
 
 
 signum : Int -> Int

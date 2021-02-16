@@ -8,8 +8,10 @@ module Numeric.Decimal exposing
     , map
     , map2
     , minus
+    , minusBounded
     , multiply
     , plus
+    , plusBounded
     , roundDecimal
     , scaleUp
     , succeed
@@ -18,6 +20,7 @@ module Numeric.Decimal exposing
     )
 
 import Basics.Extra exposing (quotRem)
+import Numeric.Decimal.BoundedArithmetic as Arithmetic
 import Numeric.Decimal.Rounding as Rounding exposing (RoundingAlgorythm)
 import Numeric.Rational as Rational exposing (Rational)
 import Parser exposing ((|.), (|=), Parser)
@@ -56,6 +59,11 @@ withRounding r (Decimal _ s p) =
     Decimal r s p
 
 
+roundDecimal : Nat -> Decimal Int -> Decimal Int
+roundDecimal k (Decimal r s d) =
+    Rounding.getRounder r d (s - k) |> Decimal r k
+
+
 getScale : Decimal p -> Nat
 getScale (Decimal _ s _) =
     s
@@ -64,11 +72,6 @@ getScale (Decimal _ s _) =
 scaleUp : Nat -> Decimal Int -> Decimal Int
 scaleUp k (Decimal r s p) =
     Decimal r k (p * (10 ^ Basics.abs (k - s)))
-
-
-fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal Int
-fromInt r s p =
-    Decimal r s (p * 10 ^ s)
 
 
 plus : Decimal Int -> Decimal Int -> Decimal Int
@@ -81,6 +84,11 @@ minus =
     map2 (-)
 
 
+multiply : Decimal Int -> Decimal Int -> Decimal Int
+multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
+    Decimal r (s1 + s2) (d1 * d2) |> roundDecimal s1
+
+
 divide : Decimal Int -> Decimal Int -> Result String (Decimal Int)
 divide (Decimal r s d1) (Decimal _ _ d2) =
     if d2 == 0 then
@@ -88,6 +96,11 @@ divide (Decimal r s d1) (Decimal _ _ d2) =
 
     else
         fromRational r s (Rational.fraction d1 d2)
+
+
+fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal Int
+fromInt r s p =
+    Decimal r s (p * 10 ^ s)
 
 
 fromRational : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal Int)
@@ -110,54 +123,19 @@ fromRational r s rational =
         succeed r (s + 1) int |> roundDecimal s |> Ok
 
 
-multiply : Decimal Int -> Decimal Int -> Decimal Int
-multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
-    Decimal r (s1 + s2) (d1 * d2) |> roundDecimal s1
+plusBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+plusBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
+    Arithmetic.plusBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
-
--- RoundToZero
-
-
-roundDecimal : Nat -> Decimal Int -> Decimal Int
-roundDecimal k (Decimal r s d) =
-    Rounding.getRounder r d (s - k) |> Decimal r k
+minusBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+minusBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
+    Arithmetic.minusBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
-
--- BOUNDED
-
-
-type Bounded
-    = Overflow
-    | Underflow
-
-
-boundedToString : Bounded -> String
-boundedToString x =
-    case x of
-        Overflow ->
-            "Overflow"
-
-        Underflow ->
-            "Underflow"
-
-
-fromIntBounded : Int -> Result Bounded Int
-fromIntBounded x =
-    if x > (2 ^ 53) then
-        Err Overflow
-
-    else if x < (-2 ^ 53) then
-        Err Underflow
-
-    else
-        Ok x
-
-
-fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result Bounded (Decimal Int)
+fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result String (Decimal Int)
 fromIntsScaleBounded r s x y =
-    (x * (10 ^ s)) + y |> fromIntBounded |> Result.map (Decimal r s)
+    (x * (10 ^ s)) + y |> Arithmetic.fromIntBounded |> Result.map (Decimal r s)
 
 
 
@@ -224,7 +202,7 @@ parseDecimalBounded r s =
                         Parser.succeed d
 
                     Err e ->
-                        Parser.problem (boundedToString e)
+                        Parser.problem e
             )
 
 
