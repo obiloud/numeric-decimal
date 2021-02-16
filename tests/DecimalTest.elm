@@ -1,8 +1,8 @@
 module DecimalTest exposing (suite)
 
 import Expect
-import Numeric.Decimal exposing (RoundingAlgorythm(..))
-import Numeric.Decimal.Internal as D
+import Numeric.Decimal as D
+import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
 import Test exposing (Test, describe, test)
 
 
