@@ -118,4 +118,36 @@ suite =
                     in
                     Expect.equal (Result.map2 D.multiply a b |> Result.map D.toString) (Ok "5.00")
             ]
+        , describe "Rounding"
+            [ describe "HalfToEven"
+                [ test "Round half even 1.25 - one decimal" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromString HalfToEven 2 "1.25"
+                        in
+                        Expect.equal (Result.map (D.roundDecimal 1 >> D.toString) a) (Ok "1.2")
+                , test "Round half even 0.5 - integer " <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromString HalfToEven 1 "0.5"
+                        in
+                        Expect.equal (Result.map (D.roundDecimal 0 >> D.toString) a) (Ok "0")
+                , test "Round half even 1.5 - integer " <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromString HalfToEven 1 "1.5"
+                        in
+                        Expect.equal (Result.map (D.roundDecimal 0 >> D.toString) a) (Ok "2")
+                , test "Round half even 1.4 - integer " <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromString HalfToEven 1 "1.4"
+                        in
+                        Expect.equal (Result.map (D.roundDecimal 0 >> D.toString) a) (Ok "1")
+                ]
+            ]
         ]
