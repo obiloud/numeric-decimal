@@ -21,6 +21,8 @@ module Numeric.Rational exposing
     , truncate
     )
 
+import Numeric.Integer exposing (div, maxBound, minBound)
+
 
 type Rational
     = Rational Int Int
@@ -31,13 +33,26 @@ fromInt n =
     Rational n 1
 
 
-fraction : Int -> Int -> Rational
+fraction : Int -> Int -> Result String Rational
 fraction n d =
     let
         gcd =
             greatestCommonDenominator n d
+
+        num =
+            div n gcd
+
+        den =
+            div d gcd
     in
-    Rational (n // gcd) (d // gcd)
+    if num > maxBound || den > maxBound then
+        Err "Overflow"
+
+    else if num < minBound || den < minBound then
+        Err "Underflow"
+
+    else
+        Rational num den |> Ok
 
 
 greatestCommonDenominator : Int -> Int -> Int
@@ -49,27 +64,27 @@ greatestCommonDenominator a b =
         greatestCommonDenominator (remainderBy a b) a
 
 
-add : Rational -> Rational -> Rational
+add : Rational -> Rational -> Result String Rational
 add (Rational n1 d1) (Rational n2 d2) =
     fraction ((n1 * d2) + (n2 * d1)) (d1 * d2)
 
 
-subtract : Rational -> Rational -> Rational
+subtract : Rational -> Rational -> Result String Rational
 subtract (Rational n1 d1) (Rational n2 d2) =
     fraction ((n1 * d2) - (n2 * d1)) (d1 * d2)
 
 
-multiply : Rational -> Rational -> Rational
+multiply : Rational -> Rational -> Result String Rational
 multiply (Rational n1 d1) (Rational n2 d2) =
     fraction (n1 * n2) (d1 * d2)
 
 
-divide : Rational -> Rational -> Rational
+divide : Rational -> Rational -> Result String Rational
 divide (Rational n1 d1) (Rational n2 d2) =
     fraction (n1 * d2) (d1 * n2)
 
 
-power : Int -> Rational -> Rational
+power : Int -> Rational -> Result String Rational
 power pow (Rational n d) =
     fraction (n ^ pow) d
 
@@ -113,7 +128,7 @@ toString r =
 
 toParts : Rational -> { int : Int, num : Int, den : Int }
 toParts (Rational n d) =
-    { int = n // d
+    { int = div n d
     , num = remainderBy d n
     , den = d
     }

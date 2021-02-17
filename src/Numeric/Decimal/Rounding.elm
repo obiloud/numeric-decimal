@@ -1,6 +1,6 @@
 module Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..), getRounder)
 
-import Basics.Extra exposing (odd, quotRem, signum)
+import Numeric.Integer exposing (odd, quotRem, signum)
 
 
 {-| Rounding Algorythm

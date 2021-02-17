@@ -4,7 +4,7 @@ module Numeric.Decimal.BoundedArithmetic exposing
     , plusBounded
     )
 
-import Basics.Extra exposing (maxBound, minBound, signum)
+import Numeric.Integer exposing (maxBound, minBound, signum)
 
 
 plusBounded : Int -> Int -> Result String Int

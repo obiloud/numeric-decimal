@@ -1,9 +1,9 @@
 module DecimalTest exposing (suite)
 
-import Basics.Extra exposing (maxBound, minBound)
 import Expect
 import Numeric.Decimal as D
 import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+import Numeric.Integer exposing (maxBound, minBound)
 import Test exposing (Test, describe, test)
 
 
@@ -181,6 +181,76 @@ suite =
                                 D.fromInt RoundTowardsZero 0 1
                         in
                         Expect.equal (D.minusBounded a b) (Err "Underflow")
+                , test "division bounded Ok" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 0 10
+
+                            b =
+                                D.fromInt RoundTowardsZero 0 2
+                        in
+                        Expect.equal (D.divideBounded a b |> Result.map D.toString) (Ok "5")
+                , test "division bounded Err" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 0 1
+
+                            b =
+                                D.fromInt RoundTowardsZero 0 0
+                        in
+                        Expect.equal (D.divideBounded a b) (Err "Divide by zero")
+                , test "division bounded Overflow" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 0 minBound
+
+                            b =
+                                D.fromInt RoundTowardsZero 0 -1
+                        in
+                        Expect.equal (D.divideBounded a b) (Err "Overflow")
+                , test "division bounded Underflow" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 0 maxBound
+
+                            b =
+                                D.fromInt RoundTowardsZero 0 -1
+                        in
+                        Expect.equal (D.divideBounded a b) (Err "Underflow")
+                , test "multiply bounded OK" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 3 1000
+
+                            b =
+                                D.fromInt RoundTowardsZero 3 125
+                        in
+                        Expect.equal (D.multiplyBounded a b |> Result.map D.toString) (Ok "125000.000")
+                , test "multiply bounded Overflow" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 3 maxBound
+
+                            b =
+                                D.fromInt RoundTowardsZero 3 2
+                        in
+                        Expect.equal (D.multiplyBounded a b) (Err "Overflow")
+                , test "multiply bounded Underflow" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 3 minBound
+
+                            b =
+                                D.fromInt RoundTowardsZero 3 2
+                        in
+                        Expect.equal (D.multiplyBounded a b) (Err "Underflow")
                 ]
             ]
         , describe "Rounding"
