@@ -1,5 +1,7 @@
 module Numeric.Decimal exposing
     ( Decimal
+    , add
+    , addBounded
     , andMap
     , divide
     , divideBounded
@@ -8,14 +10,12 @@ module Numeric.Decimal exposing
     , getScale
     , map
     , map2
-    , minus
-    , minusBounded
     , multiply
     , multiplyBounded
-    , plus
-    , plusBounded
     , roundDecimal
     , scaleUp
+    , subtract
+    , subtractBounded
     , succeed
     , toString
     , withRounding
@@ -76,13 +76,13 @@ scaleUp k (Decimal r s p) =
     Decimal r k (p * (10 ^ Basics.abs (k - s)))
 
 
-plus : Decimal Int -> Decimal Int -> Decimal Int
-plus =
+add : Decimal Int -> Decimal Int -> Decimal Int
+add =
     map2 (+)
 
 
-minus : Decimal Int -> Decimal Int -> Decimal Int
-minus =
+subtract : Decimal Int -> Decimal Int -> Decimal Int
+subtract =
     map2 (-)
 
 
@@ -137,24 +137,14 @@ fromRationalBounded r s f =
     fromRational r s f |> Result.andThen fromDecimalBounded
 
 
-plusBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
-plusBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
-    Arithmetic.plusBounded d1 d2 |> Result.map (Decimal r1 s1)
+addBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+addBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
+    Arithmetic.addBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
-minusBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
-minusBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
-    Arithmetic.minusBounded d1 d2 |> Result.map (Decimal r1 s1)
-
-
-divideBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
-divideBounded (Decimal r s d1) (Decimal _ _ d2) =
-    if d2 == 0 then
-        Err "Divide by zero"
-
-    else
-        Rational.fraction d1 d2
-            |> Result.andThen (fromRationalBounded r s)
+subtractBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+subtractBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
+    Arithmetic.subtractBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
 multiplyBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
@@ -173,6 +163,16 @@ multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
         Decimal r (s1 + s2) c
             |> roundDecimal s1
             |> Ok
+
+
+divideBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+divideBounded (Decimal r s d1) (Decimal _ _ d2) =
+    if d2 == 0 then
+        Err "Divide by zero"
+
+    else
+        Rational.fraction d1 d2
+            |> Result.andThen (fromRationalBounded r s)
 
 
 fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result String (Decimal Int)

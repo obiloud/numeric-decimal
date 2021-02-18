@@ -1,14 +1,14 @@
 module Numeric.Decimal.BoundedArithmetic exposing
-    ( fromIntBounded
-    , minusBounded
-    , plusBounded
+    ( addBounded
+    , fromIntBounded
+    , subtractBounded
     )
 
 import Numeric.Integer exposing (maxBound, minBound, signum)
 
 
-plusBounded : Int -> Int -> Result String Int
-plusBounded x y =
+addBounded : Int -> Int -> Result String Int
+addBounded x y =
     let
         signX =
             signum x
@@ -29,8 +29,8 @@ plusBounded x y =
         Ok (x + y)
 
 
-minusBounded : Int -> Int -> Result String Int
-minusBounded x y =
+subtractBounded : Int -> Int -> Result String Int
+subtractBounded x y =
     let
         signY =
             signum y

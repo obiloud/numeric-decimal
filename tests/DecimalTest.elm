@@ -78,7 +78,7 @@ suite =
                             b =
                                 D.fromString RoundTowardsZero 2 "2.1"
                         in
-                        Expect.equal (Result.map2 D.plus a b |> Result.map D.toString) (Ok "3.30")
+                        Expect.equal (Result.map2 D.add a b |> Result.map D.toString) (Ok "3.30")
                 , test "Subtract 1.2 - 2.1 scaled up" <|
                     \_ ->
                         let
@@ -88,7 +88,7 @@ suite =
                             b =
                                 D.fromString RoundTowardsZero 1 "2.1"
                         in
-                        Expect.equal (Result.map2 D.minus a b |> Result.map (D.scaleUp 2 >> D.toString)) (Ok "-0.90")
+                        Expect.equal (Result.map2 D.subtract a b |> Result.map (D.scaleUp 2 >> D.toString)) (Ok "-0.90")
                 , test "Subtract 1.2 - 2.1" <|
                     \_ ->
                         let
@@ -98,7 +98,7 @@ suite =
                             b =
                                 D.fromString RoundTowardsZero 2 "2.1"
                         in
-                        Expect.equal (Result.map2 D.minus a b |> Result.map D.toString) (Ok "-0.90")
+                        Expect.equal (Result.map2 D.subtract a b |> Result.map D.toString) (Ok "-0.90")
                 , test "Divide 124 / 4" <|
                     \_ ->
                         let
@@ -130,7 +130,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero 0 1
                         in
-                        Expect.equal (D.plusBounded a b) (Err "Overflow")
+                        Expect.equal (D.addBounded a b) (Err "Overflow")
                 , test "adding bounded underflow" <|
                     \_ ->
                         let
@@ -140,7 +140,7 @@ suite =
                             b =
                                 D.succeed RoundTowardsZero 0 -1
                         in
-                        Expect.equal (D.plusBounded a b) (Err "Underflow")
+                        Expect.equal (D.addBounded a b) (Err "Underflow")
                 , test "adding bounded Ok" <|
                     \_ ->
                         let
@@ -150,7 +150,7 @@ suite =
                             b =
                                 D.succeed RoundTowardsZero 2 456
                         in
-                        Expect.equal (D.plusBounded a b |> Result.map D.toString) (Ok "5.79")
+                        Expect.equal (D.addBounded a b |> Result.map D.toString) (Ok "5.79")
                 , test "adding bounded parsed Ok" <|
                     \_ ->
                         let
@@ -160,7 +160,7 @@ suite =
                             b =
                                 D.fromString RoundTowardsZero 2 "4.56"
                         in
-                        Expect.equal (Result.map2 D.plusBounded a b |> Result.andThen (Result.map D.toString)) (Ok "5.79")
+                        Expect.equal (Result.map2 D.addBounded a b |> Result.andThen (Result.map D.toString)) (Ok "5.79")
                 , test "subtracting bounded overflow" <|
                     \_ ->
                         let
@@ -170,7 +170,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero 0 -1
                         in
-                        Expect.equal (D.minusBounded a b) (Err "Overflow")
+                        Expect.equal (D.subtractBounded a b) (Err "Overflow")
                 , test "subtracting bounded underflow" <|
                     \_ ->
                         let
@@ -180,7 +180,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero 0 1
                         in
-                        Expect.equal (D.minusBounded a b) (Err "Underflow")
+                        Expect.equal (D.subtractBounded a b) (Err "Underflow")
                 , test "division bounded Ok" <|
                     \_ ->
                         let
