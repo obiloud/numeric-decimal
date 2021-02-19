@@ -191,7 +191,7 @@ toString (Decimal _ s p) =
             quotRem p (10 ^ s)
 
         formatted =
-            String.fromInt q ++ "." ++ String.padRight s '0' (Basics.abs r |> String.fromInt)
+            String.fromInt q ++ "." ++ String.padLeft s '0' (Basics.abs r |> String.fromInt)
     in
     if s == 0 then
         String.fromInt p
