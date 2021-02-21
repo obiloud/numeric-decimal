@@ -1,17 +1,23 @@
 module Numeric.Rational exposing
     ( Rational
     , add
+    , addBounded
     , compare
     , divide
+    , divideBounded
     , fraction
+    , fractionBounded
     , fromInt
     , greaterThan
     , greatestCommonDenominator
     , inverse
     , lessThan
     , multiply
+    , multiplyBounded
     , power
+    , powerBounded
     , subtract
+    , subtractBounded
     , toDenominator
     , toFloat
     , toFraction
@@ -33,26 +39,13 @@ fromInt n =
     Rational n 1
 
 
-fraction : Int -> Int -> Result String Rational
+fraction : Int -> Int -> Rational
 fraction n d =
     let
         gcd =
             greatestCommonDenominator n d
-
-        num =
-            div n gcd
-
-        den =
-            div d gcd
     in
-    if num > maxBound || den > maxBound then
-        Err "Overflow"
-
-    else if num < minBound || den < minBound then
-        Err "Underflow"
-
-    else
-        Rational num den |> Ok
+    Rational (div n gcd) (div d gcd)
 
 
 greatestCommonDenominator : Int -> Int -> Int
@@ -64,27 +57,27 @@ greatestCommonDenominator a b =
         greatestCommonDenominator (remainderBy a b) a
 
 
-add : Rational -> Rational -> Result String Rational
+add : Rational -> Rational -> Rational
 add (Rational n1 d1) (Rational n2 d2) =
     fraction ((n1 * d2) + (n2 * d1)) (d1 * d2)
 
 
-subtract : Rational -> Rational -> Result String Rational
+subtract : Rational -> Rational -> Rational
 subtract (Rational n1 d1) (Rational n2 d2) =
     fraction ((n1 * d2) - (n2 * d1)) (d1 * d2)
 
 
-multiply : Rational -> Rational -> Result String Rational
+multiply : Rational -> Rational -> Rational
 multiply (Rational n1 d1) (Rational n2 d2) =
     fraction (n1 * n2) (d1 * d2)
 
 
-divide : Rational -> Rational -> Result String Rational
+divide : Rational -> Rational -> Rational
 divide (Rational n1 d1) (Rational n2 d2) =
     fraction (n1 * d2) (d1 * n2)
 
 
-power : Int -> Rational -> Result String Rational
+power : Int -> Rational -> Rational
 power pow (Rational n d) =
     fraction (n ^ pow) d
 
@@ -157,3 +150,54 @@ truncate =
 toFloat : Rational -> Float
 toFloat (Rational n d) =
     Basics.toFloat n / Basics.toFloat d
+
+
+
+-- BOUNDED
+
+
+fractionBounded : Int -> Int -> Result String Rational
+fractionBounded n d =
+    let
+        gcd =
+            greatestCommonDenominator n d
+
+        num =
+            div n gcd
+
+        den =
+            div d gcd
+    in
+    if num > maxBound || den > maxBound then
+        Err "Overflow"
+
+    else if num < minBound || den < minBound then
+        Err "Underflow"
+
+    else
+        Ok (Rational num den)
+
+
+addBounded : Rational -> Rational -> Result String Rational
+addBounded (Rational n1 d1) (Rational n2 d2) =
+    fractionBounded ((n1 * d2) + (n2 * d1)) (d1 * d2)
+
+
+subtractBounded : Rational -> Rational -> Result String Rational
+subtractBounded (Rational n1 d1) (Rational n2 d2) =
+    fractionBounded ((n1 * d2) - (n2 * d1)) (d1 * d2)
+
+
+multiplyBounded : Rational -> Rational -> Result String Rational
+multiplyBounded (Rational n1 d1) (Rational n2 d2) =
+    fractionBounded (n1 * n2) (d1 * d2)
+
+
+divideBounded : Rational -> Rational -> Result String Rational
+divideBounded (Rational n1 d1) (Rational n2 d2) =
+    fractionBounded (n1 * d2) (d1 * n2)
+
+
+powerBounded : Int -> Rational -> Result String Rational
+powerBounded pow (Rational n d) =
+    fractionBounded (n ^ pow) d

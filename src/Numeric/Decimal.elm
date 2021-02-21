@@ -6,6 +6,7 @@ module Numeric.Decimal exposing
     , divide
     , divideBounded
     , fromInt
+    , fromRational
     , fromString
     , getScale
     , map
@@ -17,6 +18,7 @@ module Numeric.Decimal exposing
     , subtract
     , subtractBounded
     , succeed
+    , toRational
     , toString
     , withRounding
     )
@@ -98,7 +100,7 @@ divide (Decimal r s d1) (Decimal _ _ d2) =
 
     else
         Rational.fraction d1 d2
-            |> Result.andThen (fromRational r s)
+            |> fromRational r s
 
 
 fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal Int
@@ -126,15 +128,38 @@ fromRational r s rational =
                 10 ^ (s + 1)
         in
         Rational.fraction d 1
-            |> Result.andThen (Rational.multiply rational)
-            |> Result.map Rational.truncate
-            |> Result.map (succeed r (s + 1))
-            |> Result.map (roundDecimal s)
+            |> Rational.multiply rational
+            |> Rational.truncate
+            |> succeed r (s + 1)
+            |> roundDecimal s
+            |> Ok
 
 
 fromRationalBounded : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal Int)
-fromRationalBounded r s f =
-    fromRational r s f |> Result.andThen fromDecimalBounded
+fromRationalBounded r s rational =
+    let
+        den =
+            Rational.toDenominator rational
+    in
+    if den == 0 then
+        Err "Divide by zero"
+
+    else
+        let
+            d =
+                10 ^ (s + 1)
+        in
+        Rational.fractionBounded d 1
+            |> Result.andThen (Rational.multiplyBounded rational)
+            |> Result.map Rational.truncate
+            |> Result.map (succeed r (s + 1))
+            |> Result.map (roundDecimal s)
+            |> Result.andThen fromDecimalBounded
+
+
+toRational : Decimal Int -> Rational
+toRational (Decimal _ s d) =
+    Rational.fraction d (10 ^ s)
 
 
 addBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
@@ -171,7 +196,7 @@ divideBounded (Decimal r s d1) (Decimal _ _ d2) =
         Err "Divide by zero"
 
     else
-        Rational.fraction d1 d2
+        Rational.fractionBounded d1 d2
             |> Result.andThen (fromRationalBounded r s)
 
 

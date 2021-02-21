@@ -86,16 +86,16 @@ roundHalfEven c e =
     if e == 0 then
         c
 
-    else if Basics.abs r == b && odd q then
+    else if abs r == b && odd q then
         q + signum r
 
-    else if Basics.abs r == b then
+    else if abs r == b then
         q
 
     else if r > b then
         q + 1
 
-    else if signum r < 0 && Basics.abs r > e then
+    else if signum r < 0 && abs r > e then
         q - 1
 
     else
