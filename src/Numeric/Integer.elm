@@ -3,12 +3,12 @@ module Numeric.Integer exposing (div, even, maxBound, minBound, odd, quot, quotR
 
 maxBound : Int
 maxBound =
-    2 ^ 53
+    2 ^ 53 - 1
 
 
 minBound : Int
 minBound =
-    -2 ^ 53
+    -maxBound
 
 
 signum : Int -> Int
