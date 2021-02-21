@@ -273,10 +273,4 @@ suite =
                         |> List.foldl (Decimal.add << totalBreakdown << participation) (succeed 0)
                         |> Expect.equal totalDisbursement
             ]
-        , test "Rounding weirdly" <|
-            \_ ->
-                Decimal.succeed Decimal.HalfToEven 9 14360883911111
-                    |> Decimal.roundDecimal 2
-                    |> Decimal.toString
-                    |> Expect.equal "14360.88"
         ]
