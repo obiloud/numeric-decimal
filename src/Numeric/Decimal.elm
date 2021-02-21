@@ -3,6 +3,8 @@ module Numeric.Decimal exposing
     , add
     , addBounded
     , andMap
+    , decimalDenominator
+    , decimalNumerator
     , divide
     , divideBounded
     , fromInt
@@ -15,11 +17,14 @@ module Numeric.Decimal exposing
     , multiplyBounded
     , roundDecimal
     , scaleUp
+    , scaleUpBounded
+    , splitDecimal
     , subtract
     , subtractBounded
     , succeed
     , toRational
     , toString
+    , unwrap
     , withRounding
     )
 
@@ -41,6 +46,26 @@ type alias Nat =
 succeed : RoundingAlgorythm -> Nat -> p -> Decimal p
 succeed r s p =
     Decimal r s p
+
+
+unwrap : Decimal p -> p
+unwrap (Decimal _ _ p) =
+    p
+
+
+decimalNumerator : Decimal Int -> Int
+decimalNumerator (Decimal _ _ n) =
+    n
+
+
+decimalDenominator : Decimal p -> Int
+decimalDenominator (Decimal _ s _) =
+    10 ^ s
+
+
+splitDecimal : Decimal Int -> ( Int, Int )
+splitDecimal (Decimal _ s p) =
+    quotRem p (s ^ 10)
 
 
 map : (a -> b) -> Decimal a -> Decimal b
@@ -76,6 +101,13 @@ getScale (Decimal _ s _) =
 scaleUp : Nat -> Decimal Int -> Decimal Int
 scaleUp k (Decimal r s p) =
     Decimal r k (p * (10 ^ Basics.abs (k - s)))
+
+
+scaleUpBounded : Nat -> Decimal Int -> Result String (Decimal Int)
+scaleUpBounded k (Decimal r s p) =
+    Arithmetic.fromIntBounded (10 ^ k - s)
+        |> Result.andThen (Arithmetic.multiplyBounded p)
+        |> Result.map (Decimal r k)
 
 
 add : Decimal Int -> Decimal Int -> Decimal Int

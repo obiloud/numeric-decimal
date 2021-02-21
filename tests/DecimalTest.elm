@@ -121,7 +121,21 @@ suite =
                         Expect.equal (Result.map2 D.multiply a b |> Result.map D.toString) (Ok "5.00")
                 ]
             , describe "Bounded"
-                [ test "adding bounded overflow" <|
+                [ test "Scale up bounded" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 0 1000
+                        in
+                        Expect.equal (D.scaleUpBounded 1 a |> Result.map D.toString) (Ok "1000.0")
+                , test "Scale up bounded Overflow" <|
+                    \_ ->
+                        let
+                            a =
+                                D.fromInt RoundTowardsZero 0 maxBound
+                        in
+                        Expect.equal (D.scaleUpBounded 1 a) (Err "Overflow")
+                , test "adding bounded overflow" <|
                     \_ ->
                         let
                             a =
