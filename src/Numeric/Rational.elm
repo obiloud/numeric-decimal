@@ -47,7 +47,7 @@ module Numeric.Rational exposing
 
 -}
 
-import Numeric.Integer exposing (div, even, maxBound, minBound, signum)
+import Numeric.Integer exposing (div, even, maxBound, minBound)
 
 
 {-| Arbitrary-precision rational numbers, represented as a ratio of two `Int` values.
