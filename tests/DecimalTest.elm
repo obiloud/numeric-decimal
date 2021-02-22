@@ -4,7 +4,7 @@ import Expect
 import Numeric.Decimal as D
 import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
 import Numeric.Integer exposing (maxBound, minBound)
-import Numeric.Nat exposing (nat0, nat1, nat2, nat3, nat4, nat5)
+import Numeric.Nat exposing (nat0, nat1, nat2, nat3, nat4)
 import Test exposing (Test, describe, test)
 
 
