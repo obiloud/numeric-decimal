@@ -25,15 +25,18 @@ import Numeric.Nat as Nat exposing (Nat)
 -}
 type RoundingAlgorythm
     = RoundDown
-    | RoundUp
+      -- | RoundUp
     | RoundTowardsZero
-    | RoundAwayFromZero
-    | HalfUp
-    | HalfDown
-    | HalfTowardsZero
-    | HalfAwayFromZero
+      -- | RoundAwayFromZero
+      -- | HalfUp
+      -- | HalfDown
+      -- | HalfTowardsZero
+      -- | HalfAwayFromZero
     | HalfToEven
-    | HalfToOdd
+
+
+
+-- | HalfToOdd
 
 
 {-| Returns rounding function matched by `RoundongAlgorythm`
@@ -44,32 +47,28 @@ getRounder algorythm =
         RoundDown ->
             roundDown
 
-        RoundUp ->
-            roundToZero
-
+        -- RoundUp ->
+        --     roundToZero
         RoundTowardsZero ->
             roundToZero
 
-        RoundAwayFromZero ->
-            roundToZero
-
-        HalfUp ->
-            roundToZero
-
-        HalfDown ->
-            roundToZero
-
-        HalfTowardsZero ->
-            roundToZero
-
-        HalfAwayFromZero ->
-            roundToZero
-
+        -- RoundAwayFromZero ->
+        --     roundToZero
+        -- HalfUp ->
+        --     roundToZero
+        -- HalfDown ->
+        --     roundToZero
+        -- HalfTowardsZero ->
+        --     roundToZero
+        -- HalfAwayFromZero ->
+        --     roundToZero
         HalfToEven ->
             roundHalfEven
 
-        HalfToOdd ->
-            roundToZero
+
+
+-- HalfToOdd ->
+--     roundToZero
 
 
 roundDown : Nat -> Int -> Int
