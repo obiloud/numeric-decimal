@@ -1,4 +1,21 @@
-module Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..), getRounder)
+module Numeric.Decimal.Rounding exposing
+    ( RoundingAlgorythm(..)
+    , getRounder
+    )
+
+{-|
+
+
+# Definition
+
+@docs RoundingAlgorythm
+
+
+# Helpers
+
+@docs getRounder
+
+-}
 
 import Numeric.Integer exposing (odd, quotRem, signum)
 
@@ -18,6 +35,8 @@ type RoundingAlgorythm
     | HalfToOdd
 
 
+{-| Returns rounding function matched by `RoundongAlgorythm`
+-}
 getRounder : RoundingAlgorythm -> (Int -> Int -> Int)
 getRounder algorythm =
     case algorythm of
