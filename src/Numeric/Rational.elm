@@ -2,7 +2,7 @@ module Numeric.Rational exposing
     ( Rational
     , fraction, fractionBounded
     , fromInt, toFloat, toString, inverse
-    , toPropperFraction, toNumerator, toDenominator, truncate, round
+    , toPropperFraction, toNumerator, toDenominator, truncate, round, ceiling, floor
     , compare, greaterThan, lessThan
     , add, subtract, multiply, divide, power
     , addBounded, subtractBounded, multiplyBounded, divideBounded, powerBounded
@@ -28,7 +28,7 @@ module Numeric.Rational exposing
 
 # Extracting components of fractions
 
-@docs toPropperFraction, toNumerator, toDenominator, truncate, round
+@docs toPropperFraction, toNumerator, toDenominator, truncate, round, ceiling, floor
 
 
 # Comparison
@@ -224,6 +224,36 @@ round x =
 
     else
         m
+
+
+{-| `ceiling x` returns the least integer not less than `x`.
+-}
+ceiling : Rational -> Int
+ceiling x =
+    let
+        ( int, rem ) =
+            toPropperFraction x |> Tuple.mapSecond toFloat
+    in
+    if rem > 0 then
+        int + 1
+
+    else
+        int
+
+
+{-| `floor x` returns the greatest integer not greater than `x`.
+-}
+floor : Rational -> Int
+floor x =
+    let
+        ( int, rem ) =
+            toPropperFraction x |> Tuple.mapSecond toFloat
+    in
+    if rem > 0 then
+        int - 1
+
+    else
+        int
 
 
 {-| Converts Rational to `Float`
