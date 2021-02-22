@@ -56,6 +56,7 @@ module Numeric.Decimal exposing
 import Numeric.Decimal.BoundedArithmetic as Arithmetic
 import Numeric.Decimal.Rounding as Rounding exposing (RoundingAlgorythm)
 import Numeric.Integer exposing (maxBound, minBound, quotRem)
+import Numeric.Nat as Nat exposing (Nat)
 import Numeric.Rational as Rational exposing (Rational)
 import Parser exposing ((|.), (|=), Parser)
 
@@ -66,11 +67,7 @@ type Decimal p
     = Decimal RoundingAlgorythm Nat p
 
 
-type alias Nat =
-    Int
-
-
-{-| Create `Decimal` with `rounding`, `scaling` and `toNumerator`.
+{-| Create `Decimal` with `rounding`, `scaling` and wrapped `coefficient`.
 -}
 succeed : RoundingAlgorythm -> Nat -> p -> Decimal p
 succeed r s p =
@@ -95,14 +92,14 @@ toNumerator (Decimal _ _ n) =
 -}
 toDenominator : Decimal p -> Int
 toDenominator (Decimal _ s _) =
-    10 ^ s
+    10 ^ Nat.unwrap s
 
 
 {-| Split the number at the decimal point, i.e. whole number and the fraction.
 -}
 splitDecimal : Decimal Int -> ( Int, Int )
 splitDecimal (Decimal _ s p) =
-    quotRem p (s ^ 10)
+    quotRem p (10 ^ Nat.unwrap s)
 
 
 {-| Transform wrapped value with a given function.
@@ -137,7 +134,7 @@ withRounding r (Decimal _ s p) =
 -}
 roundDecimal : Nat -> Decimal Int -> Decimal Int
 roundDecimal k (Decimal r s d) =
-    Rounding.getRounder r d (s - k) |> Decimal r k
+    Rounding.getRounder r (Nat.subtract s k) d |> Decimal r k
 
 
 {-| Get a scale of the Decimal
@@ -151,14 +148,14 @@ getScale (Decimal _ s _) =
 -}
 scaleUp : Nat -> Decimal Int -> Decimal Int
 scaleUp k (Decimal r s p) =
-    Decimal r k (p * (10 ^ Basics.abs (k - s)))
+    Decimal r k (p * (10 ^ Nat.unwrap (Nat.subtract k s)))
 
 
 {-| Increase the precision of a `Decimal` backed by a bounded type, use `roundDecimal` if inverse is desired.
 -}
 scaleUpBounded : Nat -> Decimal Int -> Result String (Decimal Int)
 scaleUpBounded k (Decimal r s p) =
-    Arithmetic.fromIntBounded (10 ^ k - s)
+    Arithmetic.fromIntBounded (10 ^ Nat.unwrap (Nat.subtract k s))
         |> Result.andThen (Arithmetic.multiplyBounded p)
         |> Result.map (Decimal r k)
 
@@ -181,7 +178,7 @@ subtract =
 -}
 multiply : Decimal Int -> Decimal Int -> Decimal Int
 multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
-    Decimal r (s1 + s2) (d1 * d2) |> roundDecimal s1
+    Decimal r (Nat.add s1 s2) (d1 * d2) |> roundDecimal s1
 
 
 {-| Divide two Decimals.
@@ -200,7 +197,7 @@ divide (Decimal r s d1) (Decimal _ _ d2) =
 -}
 fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal Int
 fromInt r s p =
-    Decimal r s (p * 10 ^ s)
+    Decimal r s (p * 10 ^ Nat.unwrap s)
 
 
 {-| Convert a `Decimal` to another `Decimal` while checking for `Overflow`/`Underflow`.
@@ -224,12 +221,12 @@ fromRational r s rational =
     else
         let
             d =
-                10 ^ (s + 1)
+                10 ^ (Nat.unwrap s + 1)
         in
         Rational.fraction d 1
             |> Rational.multiply rational
             |> Rational.truncate
-            |> succeed r (s + 1)
+            |> succeed r (Nat.successor s)
             |> roundDecimal s
             |> Ok
 
@@ -248,12 +245,12 @@ fromRationalBounded r s rational =
     else
         let
             d =
-                10 ^ (s + 1)
+                10 ^ (Nat.unwrap s + 1)
         in
         Rational.fractionBounded d 1
             |> Result.andThen (Rational.multiplyBounded rational)
             |> Result.map Rational.truncate
-            |> Result.map (succeed r (s + 1))
+            |> Result.map (succeed r (Nat.add s (Nat.succeed 1)))
             |> Result.map (roundDecimal s)
             |> Result.andThen fromDecimalBounded
 
@@ -262,7 +259,7 @@ fromRationalBounded r s rational =
 -}
 toRational : Decimal Int -> Rational
 toRational (Decimal _ s d) =
-    Rational.fraction d (10 ^ s)
+    Rational.fraction d (10 ^ Nat.unwrap s)
 
 
 {-| Add two Decimals while checking for `Overflow`/`Underflow`.
@@ -294,7 +291,7 @@ multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
         Err "Underflow"
 
     else
-        Decimal r (s1 + s2) c
+        Decimal r (Nat.add s1 s2) c
             |> roundDecimal s1
             |> Ok
 
@@ -313,7 +310,7 @@ divideBounded (Decimal r s d1) (Decimal _ _ d2) =
 
 fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result String (Decimal Int)
 fromIntsScaleBounded r s x y =
-    (x * (10 ^ s)) + y |> Arithmetic.fromIntBounded |> Result.map (Decimal r s)
+    (x * (10 ^ Nat.unwrap s)) + y |> Arithmetic.fromIntBounded |> Result.map (Decimal r s)
 
 
 
@@ -325,17 +322,20 @@ fromIntsScaleBounded r s x y =
 toString : Decimal Int -> String
 toString (Decimal _ s p) =
     let
+        e =
+            Nat.unwrap s
+
         ( q, r ) =
-            quotRem p (10 ^ s)
+            quotRem p (10 ^ e)
 
         formatted =
-            String.fromInt q ++ "." ++ String.padLeft s '0' (Basics.abs r |> String.fromInt)
+            String.fromInt q ++ "." ++ String.padLeft e '0' (Basics.abs r |> String.fromInt)
     in
-    if s == 0 then
+    if e == 0 then
         String.fromInt p
 
     else if r == 0 then
-        String.fromInt q ++ "." ++ String.repeat s "0"
+        String.fromInt q ++ "." ++ String.repeat e "0"
 
     else if r < 0 && q == 0 then
         "-" ++ formatted
@@ -352,7 +352,7 @@ toString (Decimal _ s p) =
 -}
 fromString : RoundingAlgorythm -> Nat -> String -> Result String (Decimal Int)
 fromString r s str =
-    Parser.run (parseDecimalBounded r (abs s)) str
+    Parser.run (parseDecimalBounded r s) str
         |> Result.mapError deadEndsToString
 
 
@@ -423,11 +423,11 @@ parseFractionalPart s =
         [ parseDigits
             |> Parser.andThen
                 (\x ->
-                    if String.length x > s then
+                    if String.length x > Nat.unwrap s then
                         Parser.problem ("Too much text after the decimal: " ++ x)
 
                     else
-                        Parser.succeed (String.padRight s '0' x)
+                        Parser.succeed (String.padRight (Nat.unwrap s) '0' x)
                 )
         , Parser.succeed ""
         ]

@@ -18,6 +18,7 @@ module Numeric.Decimal.Rounding exposing
 -}
 
 import Numeric.Integer exposing (odd, quotRem, signum)
+import Numeric.Nat as Nat exposing (Nat)
 
 
 {-| Rounding Algorythm
@@ -37,7 +38,7 @@ type RoundingAlgorythm
 
 {-| Returns rounding function matched by `RoundongAlgorythm`
 -}
-getRounder : RoundingAlgorythm -> (Int -> Int -> Int)
+getRounder : RoundingAlgorythm -> (Nat -> Int -> Int)
 getRounder algorythm =
     case algorythm of
         RoundDown ->
@@ -71,11 +72,11 @@ getRounder algorythm =
             roundToZero
 
 
-roundDown : Int -> Int -> Int
-roundDown c e =
+roundDown : Nat -> Int -> Int
+roundDown e c =
     let
         b =
-            10 ^ e
+            10 ^ Nat.unwrap e
 
         ( q, r ) =
             quotRem c b
@@ -87,14 +88,17 @@ roundDown c e =
         q - 1
 
 
-roundToZero : Int -> Int -> Int
-roundToZero c e =
-    c // (10 ^ e)
+roundToZero : Nat -> Int -> Int
+roundToZero e c =
+    c // (10 ^ Nat.unwrap e)
 
 
-roundHalfEven : Int -> Int -> Int
-roundHalfEven c e =
+roundHalfEven : Nat -> Int -> Int
+roundHalfEven s c =
     let
+        e =
+            Nat.unwrap s
+
         b =
             10 ^ e
 

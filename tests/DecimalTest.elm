@@ -4,6 +4,7 @@ import Expect
 import Numeric.Decimal as D
 import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
 import Numeric.Integer exposing (maxBound, minBound)
+import Numeric.Nat exposing (nat0, nat1, nat2, nat3, nat4, nat5)
 import Test exposing (Test, describe, test)
 
 
@@ -15,57 +16,57 @@ suite =
                 \_ ->
                     let
                         x =
-                            D.succeed RoundTowardsZero 0 10
+                            D.succeed RoundTowardsZero nat0 10
                     in
                     Expect.equal (D.toString x) "10"
             , test "From Int 10" <|
                 \_ ->
                     let
                         x =
-                            D.fromInt RoundTowardsZero 0 10
+                            D.fromInt RoundTowardsZero nat0 10
                     in
                     Expect.equal (D.toString x) "10"
             , test "From Int 1234" <|
                 \_ ->
                     let
                         x =
-                            D.fromInt RoundTowardsZero 4 1234
+                            D.fromInt RoundTowardsZero nat4 1234
                     in
                     Expect.equal (D.toString x) "1234.0000"
             , test "Pure 1.23" <|
                 \_ ->
                     let
                         x =
-                            D.succeed RoundTowardsZero 2 123
+                            D.succeed RoundTowardsZero nat2 123
                     in
                     Expect.equal (D.toString x) "1.23"
             , test "Pure 1.234" <|
                 \_ ->
                     let
                         x =
-                            D.succeed RoundTowardsZero 3 -1234
+                            D.succeed RoundTowardsZero nat3 -1234
                     in
                     Expect.equal (D.toString x) "-1.234"
             ]
         , describe "Parse `fromString`"
             [ test "parse 12.34" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero 2 "12.34") (D.succeed RoundTowardsZero 2 1234 |> Ok)
+                    Expect.equal (D.fromString RoundTowardsZero nat2 "12.34") (D.succeed RoundTowardsZero nat2 1234 |> Ok)
             , test "parse -12.3" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero 2 "-12.3" |> Result.map D.toString) (Ok "-12.30")
+                    Expect.equal (D.fromString RoundTowardsZero nat2 "-12.3" |> Result.map D.toString) (Ok "-12.30")
             , test "parse 333" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero 4 "333" |> Result.map D.toString) (Ok "333.0000")
+                    Expect.equal (D.fromString RoundTowardsZero nat4 "333" |> Result.map D.toString) (Ok "333.0000")
             , test "parse 33.333333333" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero 4 "33.333333333" |> Result.map D.toString) (Err "Too much text after the decimal: 333333333")
+                    Expect.equal (D.fromString RoundTowardsZero nat4 "33.333333333" |> Result.map D.toString) (Err "Too much text after the decimal: 333333333")
             , test "parse 9007199254740995" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero 2 "9007199254740991" |> Result.map D.toString) (Err "Overflow")
+                    Expect.equal (D.fromString RoundTowardsZero nat2 "9007199254740991" |> Result.map D.toString) (Err "Overflow")
             , test "parse -9007199254740995" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero 2 "-9007199254740991" |> Result.map D.toString) (Err "Underflow")
+                    Expect.equal (D.fromString RoundTowardsZero nat2 "-9007199254740991" |> Result.map D.toString) (Err "Underflow")
             ]
         , describe "Arithmetic"
             [ describe "No bounds"
@@ -73,50 +74,50 @@ suite =
                     \_ ->
                         let
                             a =
-                                D.fromString RoundTowardsZero 2 "1.2"
+                                D.fromString RoundTowardsZero nat2 "1.2"
 
                             b =
-                                D.fromString RoundTowardsZero 2 "2.1"
+                                D.fromString RoundTowardsZero nat2 "2.1"
                         in
                         Expect.equal (Result.map2 D.add a b |> Result.map D.toString) (Ok "3.30")
                 , test "Subtract 1.2 - 2.1 scaled up" <|
                     \_ ->
                         let
                             a =
-                                D.fromString RoundTowardsZero 1 "1.2"
+                                D.fromString RoundTowardsZero nat1 "1.2"
 
                             b =
-                                D.fromString RoundTowardsZero 1 "2.1"
+                                D.fromString RoundTowardsZero nat1 "2.1"
                         in
-                        Expect.equal (Result.map2 D.subtract a b |> Result.map (D.scaleUp 2 >> D.toString)) (Ok "-0.90")
+                        Expect.equal (Result.map2 D.subtract a b |> Result.map (D.scaleUp nat2 >> D.toString)) (Ok "-0.90")
                 , test "Subtract 1.2 - 2.1" <|
                     \_ ->
                         let
                             a =
-                                D.fromString RoundTowardsZero 2 "1.2"
+                                D.fromString RoundTowardsZero nat2 "1.2"
 
                             b =
-                                D.fromString RoundTowardsZero 2 "2.1"
+                                D.fromString RoundTowardsZero nat2 "2.1"
                         in
                         Expect.equal (Result.map2 D.subtract a b |> Result.map D.toString) (Ok "-0.90")
                 , test "Divide 124 / 4" <|
                     \_ ->
                         let
                             a =
-                                D.fromString RoundTowardsZero 2 "124"
+                                D.fromString RoundTowardsZero nat2 "124"
 
                             b =
-                                D.fromString RoundTowardsZero 2 "4"
+                                D.fromString RoundTowardsZero nat2 "4"
                         in
                         Expect.equal (Result.map2 D.divide a b |> Result.andThen (Result.map D.toString)) (Ok "31.00")
                 , test "Multiply 1.25 * 4.00" <|
                     \_ ->
                         let
                             a =
-                                D.fromString RoundTowardsZero 2 "1.25"
+                                D.fromString RoundTowardsZero nat2 "1.25"
 
                             b =
-                                D.fromString RoundTowardsZero 2 "4.00"
+                                D.fromString RoundTowardsZero nat2 "4.00"
                         in
                         Expect.equal (Result.map2 D.multiply a b |> Result.map D.toString) (Ok "5.00")
                 ]
@@ -125,144 +126,144 @@ suite =
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 1000
+                                D.fromInt RoundTowardsZero nat0 1000
                         in
-                        Expect.equal (D.scaleUpBounded 1 a |> Result.map D.toString) (Ok "1000.0")
+                        Expect.equal (D.scaleUpBounded nat1 a |> Result.map D.toString) (Ok "1000.0")
                 , test "Scale up bounded Overflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 maxBound
+                                D.fromInt RoundTowardsZero nat0 maxBound
                         in
-                        Expect.equal (D.scaleUpBounded 1 a) (Err "Overflow")
+                        Expect.equal (D.scaleUpBounded nat1 a) (Err "Overflow")
                 , test "adding bounded overflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 maxBound
+                                D.fromInt RoundTowardsZero nat0 maxBound
 
                             b =
-                                D.fromInt RoundTowardsZero 0 1
+                                D.fromInt RoundTowardsZero nat0 1
                         in
                         Expect.equal (D.addBounded a b) (Err "Overflow")
                 , test "adding bounded underflow" <|
                     \_ ->
                         let
                             a =
-                                D.succeed RoundTowardsZero 0 minBound
+                                D.succeed RoundTowardsZero nat0 minBound
 
                             b =
-                                D.succeed RoundTowardsZero 0 -1
+                                D.succeed RoundTowardsZero nat0 -1
                         in
                         Expect.equal (D.addBounded a b) (Err "Underflow")
                 , test "adding bounded Ok" <|
                     \_ ->
                         let
                             a =
-                                D.succeed RoundTowardsZero 2 123
+                                D.succeed RoundTowardsZero nat2 123
 
                             b =
-                                D.succeed RoundTowardsZero 2 456
+                                D.succeed RoundTowardsZero nat2 456
                         in
                         Expect.equal (D.addBounded a b |> Result.map D.toString) (Ok "5.79")
                 , test "adding bounded parsed Ok" <|
                     \_ ->
                         let
                             a =
-                                D.fromString RoundTowardsZero 2 "1.23"
+                                D.fromString RoundTowardsZero nat2 "1.23"
 
                             b =
-                                D.fromString RoundTowardsZero 2 "4.56"
+                                D.fromString RoundTowardsZero nat2 "4.56"
                         in
                         Expect.equal (Result.map2 D.addBounded a b |> Result.andThen (Result.map D.toString)) (Ok "5.79")
                 , test "subtracting bounded overflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 maxBound
+                                D.fromInt RoundTowardsZero nat0 maxBound
 
                             b =
-                                D.fromInt RoundTowardsZero 0 -1
+                                D.fromInt RoundTowardsZero nat0 -1
                         in
                         Expect.equal (D.subtractBounded a b) (Err "Overflow")
                 , test "subtracting bounded underflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 minBound
+                                D.fromInt RoundTowardsZero nat0 minBound
 
                             b =
-                                D.fromInt RoundTowardsZero 0 1
+                                D.fromInt RoundTowardsZero nat0 1
                         in
                         Expect.equal (D.subtractBounded a b) (Err "Underflow")
                 , test "division bounded Ok" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 10
+                                D.fromInt RoundTowardsZero nat0 10
 
                             b =
-                                D.fromInt RoundTowardsZero 0 2
+                                D.fromInt RoundTowardsZero nat0 2
                         in
                         Expect.equal (D.divideBounded a b |> Result.map D.toString) (Ok "5")
                 , test "division bounded Err" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 1
+                                D.fromInt RoundTowardsZero nat0 1
 
                             b =
-                                D.fromInt RoundTowardsZero 0 0
+                                D.fromInt RoundTowardsZero nat0 0
                         in
                         Expect.equal (D.divideBounded a b) (Err "Divide by zero")
                 , test "division bounded Overflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 minBound
+                                D.fromInt RoundTowardsZero nat0 minBound
 
                             b =
-                                D.fromInt RoundTowardsZero 0 -1
+                                D.fromInt RoundTowardsZero nat0 -1
                         in
                         Expect.equal (D.divideBounded a b) (Err "Overflow")
                 , test "division bounded Underflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 0 maxBound
+                                D.fromInt RoundTowardsZero nat0 maxBound
 
                             b =
-                                D.fromInt RoundTowardsZero 0 -1
+                                D.fromInt RoundTowardsZero nat0 -1
                         in
                         Expect.equal (D.divideBounded a b) (Err "Underflow")
                 , test "multiply bounded OK" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 3 1000
+                                D.fromInt RoundTowardsZero nat3 1000
 
                             b =
-                                D.fromInt RoundTowardsZero 3 125
+                                D.fromInt RoundTowardsZero nat3 125
                         in
                         Expect.equal (D.multiplyBounded a b |> Result.map D.toString) (Ok "125000.000")
                 , test "multiply bounded Overflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 3 maxBound
+                                D.fromInt RoundTowardsZero nat3 maxBound
 
                             b =
-                                D.fromInt RoundTowardsZero 3 2
+                                D.fromInt RoundTowardsZero nat3 2
                         in
                         Expect.equal (D.multiplyBounded a b) (Err "Overflow")
                 , test "multiply bounded Underflow" <|
                     \_ ->
                         let
                             a =
-                                D.fromInt RoundTowardsZero 3 minBound
+                                D.fromInt RoundTowardsZero nat3 minBound
 
                             b =
-                                D.fromInt RoundTowardsZero 3 2
+                                D.fromInt RoundTowardsZero nat3 2
                         in
                         Expect.equal (D.multiplyBounded a b) (Err "Underflow")
                 ]
@@ -273,30 +274,30 @@ suite =
                     \_ ->
                         let
                             a =
-                                D.fromString HalfToEven 2 "1.25"
+                                D.fromString HalfToEven nat2 "1.25"
                         in
-                        Expect.equal (Result.map (D.roundDecimal 1 >> D.toString) a) (Ok "1.2")
+                        Expect.equal (Result.map (D.roundDecimal nat1 >> D.toString) a) (Ok "1.2")
                 , test "Round half even 0.5 - integer " <|
                     \_ ->
                         let
                             a =
-                                D.fromString HalfToEven 1 "0.5"
+                                D.fromString HalfToEven nat1 "0.5"
                         in
-                        Expect.equal (Result.map (D.roundDecimal 0 >> D.toString) a) (Ok "0")
+                        Expect.equal (Result.map (D.roundDecimal nat0 >> D.toString) a) (Ok "0")
                 , test "Round half even 1.5 - integer " <|
                     \_ ->
                         let
                             a =
-                                D.fromString HalfToEven 1 "1.5"
+                                D.fromString HalfToEven nat1 "1.5"
                         in
-                        Expect.equal (Result.map (D.roundDecimal 0 >> D.toString) a) (Ok "2")
+                        Expect.equal (Result.map (D.roundDecimal nat0 >> D.toString) a) (Ok "2")
                 , test "Round half even 1.4 - integer " <|
                     \_ ->
                         let
                             a =
-                                D.fromString HalfToEven 1 "1.4"
+                                D.fromString HalfToEven nat1 "1.4"
                         in
-                        Expect.equal (Result.map (D.roundDecimal 0 >> D.toString) a) (Ok "1")
+                        Expect.equal (Result.map (D.roundDecimal nat0 >> D.toString) a) (Ok "1")
                 ]
             ]
         ]

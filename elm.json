@@ -5,9 +5,10 @@
     "license": "MIT",
     "version": "1.0.0",
     "exposed-modules": [
-        "Numeric.Rational",
         "Numeric.Decimal",
-        "Numeric.Decimal.Rounding"
+        "Numeric.Decimal.Rounding",
+        "Numeric.Nat",
+        "Numeric.Rational"
     ],
     "elm-version": "0.19.1 <= v < 0.20.0",
     "dependencies": {
