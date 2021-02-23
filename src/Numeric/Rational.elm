@@ -1,6 +1,6 @@
 module Numeric.Rational exposing
     ( Rational
-    , fraction, fractionBounded
+    , ratio, ratioBounded
     , fromInt, toFloat, toString, inverse
     , toPropperFraction, toNumerator, toDenominator, truncate, round, ceiling, floor
     , compare, greaterThan, lessThan
@@ -18,7 +18,7 @@ module Numeric.Rational exposing
 
 # Crate Rational
 
-@docs fraction, fractionBounded
+@docs ratio, ratioBounded
 
 
 # Conversion
@@ -65,8 +65,8 @@ fromInt n =
 
 {-| Forms the ratio of two `Int` numbers.
 -}
-fraction : Int -> Int -> Rational
-fraction n d =
+ratio : Int -> Int -> Rational
+ratio n d =
     let
         gcd =
             greatestCommonDenominator n d
@@ -87,35 +87,35 @@ greatestCommonDenominator a b =
 -}
 add : Rational -> Rational -> Rational
 add (Rational n1 d1) (Rational n2 d2) =
-    fraction ((n1 * d2) + (n2 * d1)) (d1 * d2)
+    ratio ((n1 * d2) + (n2 * d1)) (d1 * d2)
 
 
 {-| Subtract one Rational from another.
 -}
 subtract : Rational -> Rational -> Rational
 subtract (Rational n1 d1) (Rational n2 d2) =
-    fraction ((n1 * d2) - (n2 * d1)) (d1 * d2)
+    ratio ((n1 * d2) - (n2 * d1)) (d1 * d2)
 
 
 {-| Multiply two Rationals.
 -}
 multiply : Rational -> Rational -> Rational
 multiply (Rational n1 d1) (Rational n2 d2) =
-    fraction (n1 * n2) (d1 * d2)
+    ratio (n1 * n2) (d1 * d2)
 
 
 {-| Divide two Rationals.
 -}
 divide : Rational -> Rational -> Rational
 divide (Rational n1 d1) (Rational n2 d2) =
-    fraction (n1 * d2) (d1 * n2)
+    ratio (n1 * d2) (d1 * n2)
 
 
 {-| Rase `Rational` to the power.
 -}
 power : Int -> Rational -> Rational
 power pow (Rational n d) =
-    fraction (n ^ pow) d
+    ratio (n ^ pow) d
 
 
 {-| Inverse numerator and denominator of the `Rational`.
@@ -169,12 +169,12 @@ toString r =
 {-| The function `toProperFraction` takes a real fractional number `x` and returns a pair `( n, f )` such that `x = n + f`, and:
 
   - `n` is an integral number with the same sign as `x`; and
-  - `f` is a fraction with the same type and sign as `x`, and with absolute value less than `1`.
+  - `f` is a ratio with the same type and sign as `x`, and with absolute value less than `1`.
 
 -}
 toPropperFraction : Rational -> ( Int, Rational )
 toPropperFraction (Rational n d) =
-    ( div n d, fraction (remainderBy d n) d )
+    ( div n d, ratio (remainderBy d n) d )
 
 
 {-| Extract the numerator of the ratio in reduced form: the numerator and denominator have no common factor and the denominator is positive.
@@ -269,8 +269,8 @@ toFloat (Rational n d) =
 
 {-| Forms the ratio of two `Int` numbers while checking for `Overflow`/`Underflow`.
 -}
-fractionBounded : Int -> Int -> Result String Rational
-fractionBounded n d =
+ratioBounded : Int -> Int -> Result String Rational
+ratioBounded n d =
     let
         gcd =
             greatestCommonDenominator n d
@@ -295,32 +295,32 @@ fractionBounded n d =
 -}
 addBounded : Rational -> Rational -> Result String Rational
 addBounded (Rational n1 d1) (Rational n2 d2) =
-    fractionBounded ((n1 * d2) + (n2 * d1)) (d1 * d2)
+    ratioBounded ((n1 * d2) + (n2 * d1)) (d1 * d2)
 
 
 {-| Subtract one Rational from another while checking for `Overflow`/`Underflow`.
 -}
 subtractBounded : Rational -> Rational -> Result String Rational
 subtractBounded (Rational n1 d1) (Rational n2 d2) =
-    fractionBounded ((n1 * d2) - (n2 * d1)) (d1 * d2)
+    ratioBounded ((n1 * d2) - (n2 * d1)) (d1 * d2)
 
 
 {-| Multiply two Rationals while checking for `Overflow`/`Underflow`.
 -}
 multiplyBounded : Rational -> Rational -> Result String Rational
 multiplyBounded (Rational n1 d1) (Rational n2 d2) =
-    fractionBounded (n1 * n2) (d1 * d2)
+    ratioBounded (n1 * n2) (d1 * d2)
 
 
 {-| Divide two Rationals while checking for `Overflow`/`Underflow`.
 -}
 divideBounded : Rational -> Rational -> Result String Rational
 divideBounded (Rational n1 d1) (Rational n2 d2) =
-    fractionBounded (n1 * d2) (d1 * n2)
+    ratioBounded (n1 * d2) (d1 * n2)
 
 
 {-| Rase `Rational` to the power while checking for `Overflow`/`Underflow`
 -}
 powerBounded : Int -> Rational -> Result String Rational
 powerBounded pow (Rational n d) =
-    fractionBounded (n ^ pow) d
+    ratioBounded (n ^ pow) d

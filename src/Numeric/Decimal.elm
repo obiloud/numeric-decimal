@@ -67,7 +67,16 @@ type Decimal p
     = Decimal RoundingAlgorythm Nat p
 
 
-{-| Create `Decimal` with `rounding`, `scaling` and wrapped `coefficient`.
+{-| A Decimal that succeeds without scaling or rounding.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat2)
+
+    Decimal.succeed RoundDown nat2 100
+        |> Decimal.toString
+        -- 1.00
+
 -}
 succeed : RoundingAlgorythm -> Nat -> p -> Decimal p
 succeed r s p =
@@ -75,6 +84,13 @@ succeed r s p =
 
 
 {-| Unwrap underlying representation for the decimal number. No rounding will be done.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat2)
+
+    Decimal.unwrap (Decimal.succeed RoundDown nat2 100) -- 100
+
 -}
 unwrap : Decimal p -> p
 unwrap (Decimal _ _ p) =
@@ -88,7 +104,16 @@ toNumerator (Decimal _ _ n) =
     n
 
 
-{-| Get the decimal toDenominator. Always will be a multiple of `10`.
+{-| Get the Decimal denominator. Always will be a power of `10`.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat3)
+
+    Decimal.succeed RoundDown nat3 8
+        |> Decimal.toDenominator
+        -- (10 ^ 3) = 1000
+
 -}
 toDenominator : Decimal p -> Int
 toDenominator (Decimal _ s _) =
@@ -96,6 +121,15 @@ toDenominator (Decimal _ s _) =
 
 
 {-| Split the number at the decimal point, i.e. whole number and the fraction.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat3)
+
+    D.succeed RoundTowardsZero nat3 1234
+        |> D.splitDecimal
+        -- (1, 234)
+
 -}
 splitDecimal : Decimal Int -> ( Int, Int )
 splitDecimal (Decimal _ s p) =
@@ -103,6 +137,15 @@ splitDecimal (Decimal _ s p) =
 
 
 {-| Transform wrapped value with a given function.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat2)
+
+    Decimal.map sqrt (Decimal.succeed RoundDown nat2 25)
+        |> Decimal.toString
+        -- 0.50
+
 -}
 map : (a -> b) -> Decimal a -> Decimal b
 map f (Decimal r s p) =
@@ -110,6 +153,17 @@ map f (Decimal r s p) =
 
 
 {-| Apply a function on two decimal values.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat2)
+
+    Decimal.map2 (+)
+        (Decimal.succeed RoundDown nat2 234)
+        (Decimal.succeed RoundDown nat2 567)
+        |> Decimal.toString
+        -- 8.01
+
 -}
 map2 : (a -> b -> c) -> Decimal a -> Decimal b -> Decimal c
 map2 f (Decimal r s p1) (Decimal _ _ p2) =
@@ -117,6 +171,16 @@ map2 f (Decimal r s p1) (Decimal _ _ p2) =
 
 
 {-| Apply wrapped function inside `Decimal` on another decimal value.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat2)
+
+    Decimal.succeed RoundDown nat2 (\x -> x + 1)
+        |> Decimal.andMap (Decimal.succeed RoundDown nat2 567)
+        |> Decimal.toString
+        -- 5.68
+
 -}
 andMap : Decimal a -> Decimal (a -> b) -> Decimal b
 andMap =
@@ -189,11 +253,20 @@ divide (Decimal r s d1) (Decimal _ _ d2) =
         Err "Divide by zero"
 
     else
-        Rational.fraction d1 d2
+        Rational.ratio d1 d2
             |> fromRational r s
 
 
 {-| Convert `Int` to `Decimal` while performing necessary scaling.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat3)
+
+    Decimal.fromInt RoundDown nat3 7
+        |> Decimal.toString
+        -- 7.000
+
 -}
 fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal Int
 fromInt r s p =
@@ -223,7 +296,7 @@ fromRational r s rational =
             d =
                 10 ^ (Nat.unwrap s + 1)
         in
-        Rational.fraction d 1
+        Rational.ratio d 1
             |> Rational.multiply rational
             |> Rational.truncate
             |> succeed r (Nat.successor s)
@@ -247,7 +320,7 @@ fromRationalBounded r s rational =
             d =
                 10 ^ (Nat.unwrap s + 1)
         in
-        Rational.fractionBounded d 1
+        Rational.ratioBounded d 1
             |> Result.andThen (Rational.multiplyBounded rational)
             |> Result.map Rational.truncate
             |> Result.map (succeed r (Nat.add s (Nat.succeed 1)))
@@ -259,7 +332,7 @@ fromRationalBounded r s rational =
 -}
 toRational : Decimal Int -> Rational
 toRational (Decimal _ s d) =
-    Rational.fraction d (10 ^ Nat.unwrap s)
+    Rational.ratio d (10 ^ Nat.unwrap s)
 
 
 {-| Add two Decimals while checking for `Overflow`/`Underflow`.
@@ -304,7 +377,7 @@ divideBounded (Decimal r s d1) (Decimal _ _ d2) =
         Err "Divide by zero"
 
     else
-        Rational.fractionBounded d1 d2
+        Rational.ratioBounded d1 d2
             |> Result.andThen (fromRationalBounded r s)
 
 
@@ -317,7 +390,7 @@ fromIntsScaleBounded r s x y =
 -- SHOWING
 
 
-{-| Printing Decimal to String representation.
+{-| Printing Decimal to `String` representation.
 -}
 toString : Decimal Int -> String
 toString (Decimal _ s p) =

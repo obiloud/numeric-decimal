@@ -48,6 +48,11 @@ suite =
                     in
                     Expect.equal (D.toString x) "-1.234"
             ]
+        , describe "Destructure"
+            [ test "Unwrap decimal" <|
+                \_ ->
+                    Expect.equal (D.succeed RoundTowardsZero nat3 1234 |> D.splitDecimal) ( 1, 234 )
+            ]
         , describe "Parse `fromString`"
             [ test "parse 12.34" <|
                 \_ ->

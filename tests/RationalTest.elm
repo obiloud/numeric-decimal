@@ -10,8 +10,8 @@ suite =
     describe "Test rationals"
         [ test "Rounding rational" <|
             \_ ->
-                Expect.equal (R.fraction 5 2 |> R.round) 2
+                Expect.equal (R.ratio 5 2 |> R.round) 2
         , test "Rounding rational to even" <|
             \_ ->
-                Expect.equal (R.fraction 195 10 |> R.round) 20
+                Expect.equal (R.ratio 195 10 |> R.round) 20
         ]

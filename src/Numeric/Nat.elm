@@ -64,7 +64,7 @@ subtract (Nat x) (Nat y) =
     Nat (x - y)
 
 
-{-| Increment Nat by 1
+{-| Increment by 1
 -}
 successor : Nat -> Nat
 successor (Nat x) =

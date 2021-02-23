@@ -8,5 +8,5 @@ At the time only subset of rounding algorythms is implemented:
 - RoundTowardsZero
 - HalfToEven
 
-Intention is to add more in the future.
+The plan is to add more in the future.
 
