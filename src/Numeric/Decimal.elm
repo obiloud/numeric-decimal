@@ -63,8 +63,8 @@ import Parser exposing ((|.), (|=), Parser)
 
 {-| Decimal number with scaling parameter (i.e. number of digits after decimal point) and rounding strategy.
 -}
-type Decimal p
-    = Decimal RoundingAlgorythm Nat p
+type Decimal a p
+    = Decimal RoundingAlgorythm (Nat a) p
 
 
 {-| A Decimal that succeeds without scaling or rounding.
@@ -78,7 +78,7 @@ type Decimal p
         -- 1.00
 
 -}
-succeed : RoundingAlgorythm -> Nat -> p -> Decimal p
+succeed : RoundingAlgorythm -> Nat a -> p -> Decimal a p
 succeed r s p =
     Decimal r s p
 
@@ -92,14 +92,14 @@ succeed r s p =
     Decimal.unwrap (Decimal.succeed RoundDown nat2 100) -- 100
 
 -}
-unwrap : Decimal p -> p
+unwrap : Decimal a p -> p
 unwrap (Decimal _ _ p) =
     p
 
 
 {-| Get the toNumerator. Same as `unwrap`.
 -}
-toNumerator : Decimal Int -> Int
+toNumerator : Decimal a Int -> Int
 toNumerator (Decimal _ _ n) =
     n
 
@@ -115,7 +115,7 @@ toNumerator (Decimal _ _ n) =
         -- (10 ^ 3) = 1000
 
 -}
-toDenominator : Decimal p -> Int
+toDenominator : Decimal a p -> Int
 toDenominator (Decimal _ s _) =
     10 ^ Nat.unwrap s
 
@@ -131,7 +131,7 @@ toDenominator (Decimal _ s _) =
         -- (1, 234)
 
 -}
-splitDecimal : Decimal Int -> ( Int, Int )
+splitDecimal : Decimal a Int -> ( Int, Int )
 splitDecimal (Decimal _ s p) =
     quotRem p (10 ^ Nat.unwrap s)
 
@@ -147,7 +147,7 @@ splitDecimal (Decimal _ s p) =
         -- 0.50
 
 -}
-map : (a -> b) -> Decimal a -> Decimal b
+map : (a -> b) -> Decimal n a -> Decimal n b
 map f (Decimal r s p) =
     Decimal r s (f p)
 
@@ -165,7 +165,7 @@ map f (Decimal r s p) =
         -- 8.01
 
 -}
-map2 : (a -> b -> c) -> Decimal a -> Decimal b -> Decimal c
+map2 : (a -> b -> c) -> Decimal n a -> Decimal n b -> Decimal n c
 map2 f (Decimal r s p1) (Decimal _ _ p2) =
     Decimal r s (f p1 p2)
 
@@ -182,42 +182,42 @@ map2 f (Decimal r s p1) (Decimal _ _ p2) =
         -- 5.68
 
 -}
-andMap : Decimal a -> Decimal (a -> b) -> Decimal b
+andMap : Decimal n a -> Decimal n (a -> b) -> Decimal n b
 andMap =
     map2 (|>)
 
 
 {-| Use different rounding strategy.
 -}
-withRounding : RoundingAlgorythm -> Decimal p -> Decimal p
+withRounding : RoundingAlgorythm -> Decimal a p -> Decimal a p
 withRounding r (Decimal _ s p) =
     Decimal r s p
 
 
 {-| Rounding Decimal down to a number of decimals.
 -}
-roundDecimal : Nat -> Decimal Int -> Decimal Int
+roundDecimal : Nat a -> Decimal a Int -> Decimal a Int
 roundDecimal k (Decimal r s d) =
     Rounding.getRounder r (Nat.subtract s k) d |> Decimal r k
 
 
 {-| Get a scale of the Decimal
 -}
-getScale : Decimal p -> Nat
+getScale : Decimal a p -> Nat a
 getScale (Decimal _ s _) =
     s
 
 
 {-| Increase the precision of a `Decimal`, use `roundDecimal` for the inverse.
 -}
-scaleUp : Nat -> Decimal Int -> Decimal Int
+scaleUp : Nat a -> Decimal a Int -> Decimal a Int
 scaleUp k (Decimal r s p) =
     Decimal r k (p * (10 ^ Nat.unwrap (Nat.subtract k s)))
 
 
 {-| Increase the precision of a `Decimal` backed by a bounded type, use `roundDecimal` if inverse is desired.
 -}
-scaleUpBounded : Nat -> Decimal Int -> Result String (Decimal Int)
+scaleUpBounded : Nat a -> Decimal a Int -> Result String (Decimal a Int)
 scaleUpBounded k (Decimal r s p) =
     Arithmetic.fromIntBounded (10 ^ Nat.unwrap (Nat.subtract k s))
         |> Result.andThen (Arithmetic.multiplyBounded p)
@@ -226,28 +226,28 @@ scaleUpBounded k (Decimal r s p) =
 
 {-| Add two Decimals.
 -}
-add : Decimal Int -> Decimal Int -> Decimal Int
+add : Decimal a Int -> Decimal a Int -> Decimal a Int
 add =
     map2 (+)
 
 
 {-| Subtract one Decimal from another.
 -}
-subtract : Decimal Int -> Decimal Int -> Decimal Int
+subtract : Decimal a Int -> Decimal a Int -> Decimal a Int
 subtract =
     map2 (-)
 
 
 {-| Multiply two Decimals.
 -}
-multiply : Decimal Int -> Decimal Int -> Decimal Int
+multiply : Decimal a Int -> Decimal a Int -> Decimal a Int
 multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
     Decimal r (Nat.add s1 s2) (d1 * d2) |> roundDecimal s1
 
 
 {-| Divide two Decimals.
 -}
-divide : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+divide : Decimal a Int -> Decimal a Int -> Result String (Decimal a Int)
 divide (Decimal r s d1) (Decimal _ _ d2) =
     if d2 == 0 then
         Err "Divide by zero"
@@ -268,21 +268,21 @@ divide (Decimal r s d1) (Decimal _ _ d2) =
         -- 7.000
 
 -}
-fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal Int
+fromInt : RoundingAlgorythm -> Nat a -> Int -> Decimal a Int
 fromInt r s p =
     Decimal r s (p * 10 ^ Nat.unwrap s)
 
 
 {-| Convert a `Decimal` to another `Decimal` while checking for `Overflow`/`Underflow`.
 -}
-fromDecimalBounded : Decimal Int -> Result String (Decimal Int)
+fromDecimalBounded : Decimal a Int -> Result String (Decimal a Int)
 fromDecimalBounded (Decimal r s d) =
     Arithmetic.fromIntBounded d |> Result.map (Decimal r s)
 
 
 {-| Convert `Rational` to `Decimal`.
 -}
-fromRational : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal Int)
+fromRational : RoundingAlgorythm -> Nat a -> Rational -> Result String (Decimal a Int)
 fromRational r s rational =
     let
         den =
@@ -306,7 +306,7 @@ fromRational r s rational =
 
 {-| Convert from `Rational` to `Decimal` while checking for `Overflow`/`Underflow`.
 -}
-fromRationalBounded : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal Int)
+fromRationalBounded : RoundingAlgorythm -> Nat a -> Rational -> Result String (Decimal a Int)
 fromRationalBounded r s rational =
     let
         den =
@@ -330,28 +330,28 @@ fromRationalBounded r s rational =
 
 {-| Converting `Decimal` to `Rational`.
 -}
-toRational : Decimal Int -> Rational
+toRational : Decimal a Int -> Rational
 toRational (Decimal _ s d) =
     Rational.ratio d (10 ^ Nat.unwrap s)
 
 
 {-| Add two Decimals while checking for `Overflow`/`Underflow`.
 -}
-addBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+addBounded : Decimal a Int -> Decimal a Int -> Result String (Decimal a Int)
 addBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
     Arithmetic.addBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
 {-| Subtract one Decimal from another while checking for `Overflow`/`Underflow`.
 -}
-subtractBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+subtractBounded : Decimal a Int -> Decimal a Int -> Result String (Decimal a Int)
 subtractBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
     Arithmetic.subtractBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
 {-| Multiply two Decimal while checking for `Overflow`/`Underflow`.
 -}
-multiplyBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+multiplyBounded : Decimal a Int -> Decimal a Int -> Result String (Decimal a Int)
 multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
     let
         c =
@@ -371,7 +371,7 @@ multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
 
 {-| Divide two Decimals while checking for `Overflow`/`Underflow`.
 -}
-divideBounded : Decimal Int -> Decimal Int -> Result String (Decimal Int)
+divideBounded : Decimal a Int -> Decimal a Int -> Result String (Decimal a Int)
 divideBounded (Decimal r s d1) (Decimal _ _ d2) =
     if d2 == 0 then
         Err "Divide by zero"
@@ -381,7 +381,7 @@ divideBounded (Decimal r s d1) (Decimal _ _ d2) =
             |> Result.andThen (fromRationalBounded r s)
 
 
-fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result String (Decimal Int)
+fromIntsScaleBounded : RoundingAlgorythm -> Nat a -> Int -> Int -> Result String (Decimal a Int)
 fromIntsScaleBounded r s x y =
     (x * (10 ^ Nat.unwrap s)) + y |> Arithmetic.fromIntBounded |> Result.map (Decimal r s)
 
@@ -392,7 +392,7 @@ fromIntsScaleBounded r s x y =
 
 {-| Printing Decimal to `String` representation.
 -}
-toString : Decimal Int -> String
+toString : Decimal a Int -> String
 toString (Decimal _ s p) =
     let
         e =
@@ -423,7 +423,7 @@ toString (Decimal _ s p) =
 
 {-| Parse `String` to `Decimal` while chacking for formatting and `Overflow`/`Underflow`.
 -}
-fromString : RoundingAlgorythm -> Nat -> String -> Result String (Decimal Int)
+fromString : RoundingAlgorythm -> Nat a -> String -> Result String (Decimal a Int)
 fromString r s str =
     Parser.run (parseDecimalBounded r s) str
         |> Result.mapError deadEndsToString
@@ -443,7 +443,7 @@ deadEndsToString =
     List.foldl (\e a -> a ++ endToString e) ""
 
 
-parseDecimalBounded : RoundingAlgorythm -> Nat -> Parser (Decimal Int)
+parseDecimalBounded : RoundingAlgorythm -> Nat a -> Parser (Decimal a Int)
 parseDecimalBounded r s =
     Parser.succeed toCoefficient
         |= parseSign
@@ -490,7 +490,7 @@ parseDigits =
         |> Parser.getChompedString
 
 
-parseFractionalPart : Nat -> Parser String
+parseFractionalPart : Nat a -> Parser String
 parseFractionalPart s =
     Parser.oneOf
         [ parseDigits

@@ -41,7 +41,7 @@ type RoundingAlgorythm
 
 {-| Returns rounding function matched by `RoundongAlgorythm`
 -}
-getRounder : RoundingAlgorythm -> (Nat -> Int -> Int)
+getRounder : RoundingAlgorythm -> (Nat a -> Int -> Int)
 getRounder algorythm =
     case algorythm of
         RoundDown ->
@@ -71,7 +71,7 @@ getRounder algorythm =
 --     roundToZero
 
 
-roundDown : Nat -> Int -> Int
+roundDown : Nat a -> Int -> Int
 roundDown e c =
     let
         b =
@@ -87,12 +87,12 @@ roundDown e c =
         q - 1
 
 
-roundToZero : Nat -> Int -> Int
+roundToZero : Nat a -> Int -> Int
 roundToZero e c =
     c // (10 ^ Nat.unwrap e)
 
 
-roundHalfEven : Nat -> Int -> Int
+roundHalfEven : Nat a -> Int -> Int
 roundHalfEven s c =
     let
         e =

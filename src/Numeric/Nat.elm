@@ -32,82 +32,82 @@ module Numeric.Nat exposing
 
 {-| Naturals with zero.
 -}
-type Nat
+type Nat a
     = Nat Int
 
 
 {-| Nat from Int
 -}
-succeed : Int -> Nat
+succeed : Int -> Nat a
 succeed =
     abs >> Nat
 
 
 {-| Unwrap Nat
 -}
-unwrap : Nat -> Int
+unwrap : Nat a -> Int
 unwrap (Nat x) =
     x
 
 
 {-| Add two Nats.
 -}
-add : Nat -> Nat -> Nat
+add : Nat a -> Nat a -> Nat a
 add (Nat x) (Nat y) =
     Nat (x + y)
 
 
 {-| Subtract one Nat from another.
 -}
-subtract : Nat -> Nat -> Nat
+subtract : Nat a -> Nat a -> Nat a
 subtract (Nat x) (Nat y) =
     Nat (x - y)
 
 
 {-| Increment by 1
 -}
-successor : Nat -> Nat
+successor : Nat a -> Nat a
 successor (Nat x) =
     Nat (x + 1)
 
 
 {-| Nat 0
 -}
-nat0 : Nat
+nat0 : Nat a
 nat0 =
     succeed 0
 
 
 {-| Nat 1
 -}
-nat1 : Nat
+nat1 : Nat a
 nat1 =
     successor nat0
 
 
 {-| Nat 2
 -}
-nat2 : Nat
+nat2 : Nat a
 nat2 =
     successor nat1
 
 
 {-| Nat 3
 -}
-nat3 : Nat
+nat3 : Nat a
 nat3 =
     successor nat2
 
 
 {-| Nat 4
 -}
-nat4 : Nat
+nat4 : Nat a
 nat4 =
     successor nat3
 
 
 {-| Nat 5
 -}
-nat5 : Nat
+nat5 : Nat a
 nat5 =
     successor nat4
