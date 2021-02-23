@@ -62,9 +62,53 @@ import Parser exposing ((|.), (|=), Parser)
 
 
 {-| Decimal number with scaling parameter (i.e. number of digits after decimal point) and rounding strategy.
+
+The `s` type variable is for a phantom type and it is here to provide type level safety of arithmetic operations on Decimals.
+There is nothing on the type level that is restricting you from adding two decimals with different scaling parameter.
+But there is a way out of this with the help of a custom phantom type:
+
+    type TwoDecimals
+        = TwoDecimals
+
+    type ThreeDecimals
+        = ThreeDecimals
+
+    twoDecimals : Int -> Decimal TwoDecimals Int
+    twoDecimals =
+        Decimal.succeed RoundTowardsZero nat2
+
+    threeDecimals : Int -> Decimal ThreeDecimals Int
+    threeDecimals =
+        Decimal.succeed RoundTowardsZero nat3
+
+    let
+        x = twoDecimals 120
+
+        y = threeDecimals 210
+    in
+    Decimal.add x y
+
+    -- TYPE MISMATCH ----- /Users/bojanristic/Projects/decimal/tests/DecimalTest.elm
+
+    -- The 2nd argument to `add` is not what I expect:
+
+    -- 105|                         Expect.equal (D.add x y |> D.toString) "3.30"
+    --                                                    ^
+    -- This `y` value is a:
+
+    --     Decimal ThreeDecimals Int
+
+    -- But `add` needs the 2nd argument to be:
+
+    --     Decimal TwoDecimals Int
+
+The `p` is for precision. In more advanced type system this could be arbitrary Intergal type (Integer, Int8, Int16, Int32, Int64 etc.)
+but in Elm it is difficult to achieve that level of abstraction.
+To support `applicative` chaining of operations here is provided `p` type variable (wrapped value can be a function).
+
 -}
 type Decimal s p
-    = Decimal RoundingAlgorythm (Nat s) p
+    = Decimal RoundingAlgorythm Nat p
 
 
 {-| A Decimal that succeeds without scaling or rounding.
@@ -78,7 +122,7 @@ type Decimal s p
         -- 1.00
 
 -}
-succeed : RoundingAlgorythm -> Nat s -> p -> Decimal s p
+succeed : RoundingAlgorythm -> Nat -> p -> Decimal s p
 succeed r s p =
     Decimal r s p
 
@@ -196,28 +240,28 @@ withRounding r (Decimal _ s p) =
 
 {-| Rounding Decimal down to a number of decimals.
 -}
-roundDecimal : Nat s -> Decimal s Int -> Decimal s Int
+roundDecimal : Nat -> Decimal s Int -> Decimal s Int
 roundDecimal k (Decimal r s d) =
     Rounding.getRounder r (Nat.subtract s k) d |> Decimal r k
 
 
 {-| Get a scale of the Decimal
 -}
-getScale : Decimal s p -> Nat s
+getScale : Decimal s p -> Nat
 getScale (Decimal _ s _) =
     s
 
 
 {-| Increase the precision of a `Decimal`, use `roundDecimal` for the inverse.
 -}
-scaleUp : Nat s -> Decimal s Int -> Decimal s Int
+scaleUp : Nat -> Decimal s Int -> Decimal s Int
 scaleUp k (Decimal r s p) =
     Decimal r k (p * (10 ^ Nat.unwrap (Nat.subtract k s)))
 
 
 {-| Increase the precision of a `Decimal` backed by a bounded type, use `roundDecimal` if inverse is desired.
 -}
-scaleUpBounded : Nat s -> Decimal s Int -> Result String (Decimal s Int)
+scaleUpBounded : Nat -> Decimal s Int -> Result String (Decimal s Int)
 scaleUpBounded k (Decimal r s p) =
     Arithmetic.fromIntBounded (10 ^ Nat.unwrap (Nat.subtract k s))
         |> Result.andThen (Arithmetic.multiplyBounded p)
@@ -268,7 +312,7 @@ divide (Decimal r s d1) (Decimal _ _ d2) =
         -- 7.000
 
 -}
-fromInt : RoundingAlgorythm -> Nat s -> Int -> Decimal s Int
+fromInt : RoundingAlgorythm -> Nat -> Int -> Decimal s Int
 fromInt r s p =
     Decimal r s (p * 10 ^ Nat.unwrap s)
 
@@ -282,7 +326,7 @@ fromDecimalBounded (Decimal r s d) =
 
 {-| Convert `Rational` to `Decimal`.
 -}
-fromRational : RoundingAlgorythm -> Nat s -> Rational -> Result String (Decimal s Int)
+fromRational : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal s Int)
 fromRational r s rational =
     let
         den =
@@ -306,7 +350,7 @@ fromRational r s rational =
 
 {-| Convert from `Rational` to `Decimal` while checking for `Overflow`/`Underflow`.
 -}
-fromRationalBounded : RoundingAlgorythm -> Nat s -> Rational -> Result String (Decimal s Int)
+fromRationalBounded : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal s Int)
 fromRationalBounded r s rational =
     let
         den =
@@ -381,7 +425,7 @@ divideBounded (Decimal r s d1) (Decimal _ _ d2) =
             |> Result.andThen (fromRationalBounded r s)
 
 
-fromIntsScaleBounded : RoundingAlgorythm -> Nat s -> Int -> Int -> Result String (Decimal s Int)
+fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result String (Decimal s Int)
 fromIntsScaleBounded r s x y =
     (x * (10 ^ Nat.unwrap s)) + y |> Arithmetic.fromIntBounded |> Result.map (Decimal r s)
 
@@ -423,7 +467,7 @@ toString (Decimal _ s p) =
 
 {-| Parse `String` to `Decimal` while chacking for formatting and `Overflow`/`Underflow`.
 -}
-fromString : RoundingAlgorythm -> Nat s -> String -> Result String (Decimal s Int)
+fromString : RoundingAlgorythm -> Nat -> String -> Result String (Decimal s Int)
 fromString r s str =
     Parser.run (parseDecimalBounded r s) str
         |> Result.mapError deadEndsToString
@@ -443,7 +487,7 @@ deadEndsToString =
     List.foldl (\e a -> a ++ endToString e) ""
 
 
-parseDecimalBounded : RoundingAlgorythm -> Nat s -> Parser (Decimal s Int)
+parseDecimalBounded : RoundingAlgorythm -> Nat -> Parser (Decimal s Int)
 parseDecimalBounded r s =
     Parser.succeed toCoefficient
         |= parseSign
@@ -490,7 +534,7 @@ parseDigits =
         |> Parser.getChompedString
 
 
-parseFractionalPart : Nat s -> Parser String
+parseFractionalPart : Nat -> Parser String
 parseFractionalPart s =
     Parser.oneOf
         [ parseDigits

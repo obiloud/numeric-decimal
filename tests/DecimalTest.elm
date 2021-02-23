@@ -1,20 +1,31 @@
 module DecimalTest exposing (suite)
 
 import Expect
-import Numeric.Decimal as D
+import Numeric.Decimal as D exposing (Decimal)
 import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
 import Numeric.Integer exposing (maxBound, minBound)
-import Numeric.Nat exposing (Nat, nat0, nat1, nat2, nat3, nat4)
+import Numeric.Nat exposing (nat0, nat1, nat2, nat3, nat4)
 import Test exposing (Test, describe, test)
 
 
-type Two
-    = Two
+type TwoDecimals
+    = TwoDecimals
 
 
-succeed : Int -> D.Decimal (Nat Two) Int
-succeed =
+
+-- type ThreeDecimals
+--     = ThreeDecimals
+
+
+twoDecimals : Int -> Decimal TwoDecimals Int
+twoDecimals =
     D.succeed RoundTowardsZero nat2
+
+
+
+-- threeDecimals : Int -> Decimal ThreeDecimals Int
+-- threeDecimals =
+--     D.succeed RoundTowardsZero nat3
 
 
 suite : Test
@@ -83,27 +94,27 @@ suite =
                     Expect.equal (D.fromString RoundTowardsZero nat2 "-9007199254740991" |> Result.map D.toString) (Err "Underflow")
             ]
         , describe "Arithmetic"
-            [ -- describe "Type safe"
-              -- [ test "Add two decimals 1.2 + 2.1" <|
-              --     \_ ->
-              --         let
-              --             a =
-              --                 D.fromString RoundTowardsZero nat2 "1.2"
-              --             b =
-              --                 succeed 210
-              --         in
-              --         Expect.equal (Result.map2 D.add a b |> Result.map D.toString) (Ok "3.30")
-              -- ]
+            [ --     describe "Type safe"
+              --     [ test "Add two decimals 1.2 + 2.1" <|
+              --         \_ ->
+              --             let
+              --                 x =
+              --                     twoDecimals 120
+              --                 y =
+              --                     threeDecimals 210
+              --             in
+              --             Expect.equal (D.add x y |> D.toString) "3.30"
+              --     ]
               -- ,
               describe "No bounds"
                 [ test "Add two decimals 1.2 + 2.1" <|
                     \_ ->
                         let
                             a =
-                                succeed 120
+                                twoDecimals 120
 
                             b =
-                                succeed 210
+                                twoDecimals 210
                         in
                         Expect.equal (D.add a b |> D.toString) "3.30"
                 , test "Subtract 1.2 - 2.1 scaled up" <|

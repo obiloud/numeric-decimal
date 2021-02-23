@@ -63,7 +63,7 @@ fromInt n =
     Rational n 1
 
 
-{-| Forms the ratio of two `Int` numbers.
+{-| Forms the ratio of two integers.
 -}
 ratio : Int -> Int -> Rational
 ratio n d =
@@ -267,7 +267,7 @@ toFloat (Rational n d) =
 -- BOUNDED
 
 
-{-| Forms the ratio of two `Int` numbers while checking for `Overflow`/`Underflow`.
+{-| Forms the ratio of two integers while checking for `Overflow`/`Underflow`.
 -}
 ratioBounded : Int -> Int -> Result String Rational
 ratioBounded n d =
