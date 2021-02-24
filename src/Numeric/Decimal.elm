@@ -4,7 +4,7 @@ module Numeric.Decimal exposing
     , fromInt, fromDecimalBounded, fromRational, fromRationalBounded, toRational, withRounding
     , fromString, toString
     , toInt, toNumerator, toDenominator, splitDecimal
-    , getScale, roundDecimal, scaleUp, scaleUpBounded
+    , getPrecision, roundDecimal, scaleUp, scaleUpBounded
     , add, subtract, multiply, divide
     , addBounded, subtractBounded, multiplyBounded, divideBounded
     )
@@ -39,7 +39,7 @@ module Numeric.Decimal exposing
 
 # Rounding and scaling
 
-@docs getScale, roundDecimal, scaleUp, scaleUpBounded
+@docs getPrecision, roundDecimal, scaleUp, scaleUpBounded
 
 
 # Simple arithmetic
@@ -61,7 +61,7 @@ import Numeric.Rational as Rational exposing (Rational)
 import Parser exposing ((|.), (|=), Parser)
 
 
-{-| Decimal number with scaling parameter (i.e. number of digits after decimal point) and rounding strategy.
+{-| Decimal number with precision parameter (i.e. number of digits following decimal point) and rounding strategy.
 
 The `s` type variable is for a phantom type and it is here to provide type level safety of arithmetic operations on Decimals.
 There is nothing on the type level that is restricting you from adding two decimals with different scaling parameter.
@@ -239,27 +239,56 @@ withRounding r (Decimal _ s p) =
 
 
 {-| Rounding Decimal down to a number of decimals.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat1, nat2)
+
+    Decimal.succeed RoundDown nat2 123  -- 1.23
+        |> Decimal.roundDown nat1
+        |> Decimal.toString
+        -- 1.2
+
 -}
 roundDecimal : Nat -> Decimal s Int -> Decimal s Int
 roundDecimal k (Decimal r s d) =
     Rounding.getRounder r (Nat.subtract s k) d |> Decimal r k
 
 
-{-| Get a scale of the Decimal
+{-| Get precision of the Decimal (number of fractional digits)
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat1, nat2)
+
+    Decimal.succeed RoundDown nat2 123
+        |> Decimal.getPrecision
+        -- (Nat 2)
+
 -}
-getScale : Decimal s p -> Nat
-getScale (Decimal _ s _) =
+getPrecision : Decimal s p -> Nat
+getPrecision (Decimal _ s _) =
     s
 
 
 {-| Increase the precision of a `Decimal`, use `roundDecimal` for the inverse.
+
+    import Numeric.Decimal as Decimal
+    import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
+    import Numeric.Nat exposing (nat2, nat3)
+
+    Decimal.succeed RoundDown nat2 123  -- 1.23
+        |> Decimal.scaleUp nat3
+        |> Decimal.toString
+        -- 1.230
+
 -}
 scaleUp : Nat -> Decimal s Int -> Decimal s Int
 scaleUp k (Decimal r s p) =
     Decimal r k (p * (10 ^ Nat.toInt (Nat.subtract k s)))
 
 
-{-| Increase the precision of a `Decimal` backed by a bounded type, use `roundDecimal` if inverse is desired.
+{-| Increase the precision of a `Decimal` while checking for `Overflow`/`Underflow`, use `roundDecimal` if inverse is desired.
 -}
 scaleUpBounded : Nat -> Decimal s Int -> Result String (Decimal s Int)
 scaleUpBounded k (Decimal r s p) =
