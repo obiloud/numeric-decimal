@@ -64,10 +64,10 @@ import Parser exposing ((|.), (|=), Parser)
 {-| Decimal number with precision parameter (i.e. number of digits following decimal point) and rounding strategy.
 
 The `s` type variable is for a phantom type and it is here to provide type level safety of arithmetic operations on Decimals.
-There is nothing on the type level that is restricting you from adding two decimals with different scaling parameter.
+There is nothing on the type level that is restricting you from adding two decimals with different precision parameter.
 
 This could result in something you didn't anticipate. Precision and rounding strategy of the left operand will be used for the resulting decimal.
-The second operand is not scaled or rounded down to match the first operand (i.e. `1.2 + 1.25 == 14.5`).
+The second operand is not scaled or rounded down to match the first operand (i.e. `1.2 + 1.25 == 13.7`).
 
 But there is a way out of this with the help of a custom phantom type:
 
@@ -299,6 +299,10 @@ scaleUpBounded k (Decimal r s p) =
     Arithmetic.fromIntBounded (10 ^ Nat.toInt (Nat.subtract k s))
         |> Result.andThen (Arithmetic.multiplyBounded p)
         |> Result.map (Decimal r k)
+
+
+
+-- ARITHMETIC
 
 
 {-| Add two Decimals.
