@@ -8,24 +8,24 @@ import Numeric.Nat exposing (nat0, nat1, nat2, nat3, nat4)
 import Test exposing (Test, describe, test)
 
 
-type TwoDecimals
-    = TwoDecimals
+type Pennies
+    = Pennies
 
 
 
--- type ThreeDecimals
---     = ThreeDecimals
+-- type Dollars
+--     = Dollars
 
 
-twoDecimals : Int -> Decimal TwoDecimals Int
-twoDecimals =
+pennies : Int -> Decimal Pennies Int
+pennies =
     D.succeed RoundTowardsZero nat2
 
 
 
--- threeDecimals : Int -> Decimal ThreeDecimals Int
--- threeDecimals =
---     D.succeed RoundTowardsZero nat3
+-- dollars : Int -> Decimal Dollars Int
+-- dollars =
+--     D.succeed RoundTowardsZero nat0
 
 
 suite : Test
@@ -95,13 +95,13 @@ suite =
             ]
         , describe "Arithmetic"
             [ --     describe "Type safe"
-              --     [ test "Add two decimals 1.2 + 2.1" <|
+              --     [ test "Add dollars to pennies" <|
               --         \_ ->
               --             let
               --                 x =
-              --                     twoDecimals 120
+              --                     pennies 120
               --                 y =
-              --                     threeDecimals 210
+              --                     dollars 210
               --             in
               --             Expect.equal (D.add x y |> D.toString) "3.30"
               --     ]
@@ -111,10 +111,10 @@ suite =
                     \_ ->
                         let
                             a =
-                                twoDecimals 120
+                                pennies 120
 
                             b =
-                                twoDecimals 210
+                                pennies 210
                         in
                         Expect.equal (D.add a b |> D.toString) "3.30"
                 , test "Subtract 1.2 - 2.1 scaled up" <|

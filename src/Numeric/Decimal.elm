@@ -71,44 +71,44 @@ The second operand is not scaled or rounded down to match the first operand (i.e
 
 But there is a way out of this with the help of a custom phantom type:
 
-    type TwoDecimals
-        = TwoDecimals
+    type Dollars
+        = Dollars
 
-    type ThreeDecimals
-        = ThreeDecimals
+    type Pennies
+        = Pennies
 
-    twoDecimals : Int -> Decimal TwoDecimals Int
-    twoDecimals =
-        Decimal.succeed RoundTowardsZero nat2
+    dollars : Int -> Decimal Dollars Int
+    dollars =
+        Decimal.succeed HalfToEven nat0
 
-    threeDecimals : Int -> Decimal ThreeDecimals Int
-    threeDecimals =
-        Decimal.succeed RoundTowardsZero nat3
+    pennies : Int -> Decimal Pennies Int
+    pennies =
+        Decimal.succeed HalfToEven nat2
 
     let
-        x = twoDecimals 120
+        x = pennies 120
 
-        y = threeDecimals 210
+        y = dollars 210
     in
-    Decimal.add x y
+    D.add x y
 
-    -- TYPE MISMATCH ----- /Users/bojanristic/Projects/decimal/tests/DecimalTest.elm
+    -- TYPE MISMATCH ----- ~/decimal/tests/DecimalTest.elm
 
     -- The 2nd argument to `add` is not what I expect:
 
-    -- 105|                         Expect.equal (D.add x y |> D.toString) "3.30"
-    --                                                    ^
+    -- 105| D.add x y
+    --              ^
     -- This `y` value is a:
 
-    --     Decimal ThreeDecimals Int
+    --     Decimal Dollars Int
 
     -- But `add` needs the 2nd argument to be:
 
-    --     Decimal TwoDecimals Int
+    --     Decimal Pennies Int
 
 The `p` is for precision. In more advanced type system this could be arbitrary Intergal type (Integer, Int8, Int16, Int32, Int64 etc.)
 but in Elm it is difficult to achieve that level of abstraction.
-To support `applicative` chaining of operations here is provided `p` type variable (wrapped value can be a function).
+To support `applicative` chaining of operations there is `p` type variable (wrapped value can be a function).
 
 -}
 type Decimal s p
@@ -242,7 +242,7 @@ withRounding r (Decimal _ s p) =
     Decimal r s p
 
 
-{-| Rounding Decimal down to a number of decimals.
+{-| Rounding down to a number of decimals.
 
     import Numeric.Decimal as Decimal
     import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
@@ -326,7 +326,7 @@ multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
     Decimal r (Nat.add s1 s2) (d1 * d2) |> roundDecimal s1
 
 
-{-| Divide two Decimals.
+{-| Divide two Decimals. Operation can fail if divisor is zero.
 -}
 divide : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
 divide (Decimal r s d1) (Decimal _ _ d2) =
@@ -450,7 +450,7 @@ multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
             |> Ok
 
 
-{-| Divide two Decimals while checking for `Overflow`/`Underflow`.
+{-| Divide two Decimals while checking for `Overflow`/`Underflow` and `Division by zero`.
 -}
 divideBounded : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
 divideBounded (Decimal r s d1) (Decimal _ _ d2) =
