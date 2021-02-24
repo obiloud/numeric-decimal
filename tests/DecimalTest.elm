@@ -1,6 +1,7 @@
 module DecimalTest exposing (suite)
 
 import Expect
+import Numeric.ArithmeticError exposing (ArithmeticError(..))
 import Numeric.Decimal as D exposing (Decimal)
 import Numeric.Decimal.Rounding exposing (RoundingAlgorythm(..))
 import Numeric.Integer exposing (maxBound, minBound)
@@ -85,13 +86,13 @@ suite =
                     Expect.equal (D.fromString RoundTowardsZero nat4 "333" |> Result.map D.toString) (Ok "333.0000")
             , test "parse 33.333333333" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero nat4 "33.333333333" |> Result.map D.toString) (Err "Too much text after the decimal: 333333333")
+                    Expect.equal (D.fromString RoundTowardsZero nat4 "33.333333333" |> Result.map D.toString) (Err (ParsingProblem "Too much text after the decimal: 333333333"))
             , test "parse 9007199254740995" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero nat2 "9007199254740991" |> Result.map D.toString) (Err "Overflow")
+                    Expect.equal (D.fromString RoundTowardsZero nat2 "9007199254740991" |> Result.map D.toString) (Err Overflow)
             , test "parse -9007199254740995" <|
                 \_ ->
-                    Expect.equal (D.fromString RoundTowardsZero nat2 "-9007199254740991" |> Result.map D.toString) (Err "Underflow")
+                    Expect.equal (D.fromString RoundTowardsZero nat2 "-9007199254740991" |> Result.map D.toString) (Err Underflow)
             ]
         , describe "Arithmetic"
             [ --     describe "Type safe"
@@ -172,7 +173,7 @@ suite =
                             a =
                                 D.fromInt RoundTowardsZero nat0 maxBound
                         in
-                        Expect.equal (D.scaleUpBounded nat1 a) (Err "Overflow")
+                        Expect.equal (D.scaleUpBounded nat1 a) (Err Overflow)
                 , test "adding bounded overflow" <|
                     \_ ->
                         let
@@ -182,7 +183,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat0 1
                         in
-                        Expect.equal (D.addBounded a b) (Err "Overflow")
+                        Expect.equal (D.addBounded a b) (Err Overflow)
                 , test "adding bounded underflow" <|
                     \_ ->
                         let
@@ -192,7 +193,7 @@ suite =
                             b =
                                 D.succeed RoundTowardsZero nat0 -1
                         in
-                        Expect.equal (D.addBounded a b) (Err "Underflow")
+                        Expect.equal (D.addBounded a b) (Err Underflow)
                 , test "adding bounded Ok" <|
                     \_ ->
                         let
@@ -222,7 +223,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat0 -1
                         in
-                        Expect.equal (D.subtractBounded a b) (Err "Overflow")
+                        Expect.equal (D.subtractBounded a b) (Err Overflow)
                 , test "subtracting bounded underflow" <|
                     \_ ->
                         let
@@ -232,7 +233,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat0 1
                         in
-                        Expect.equal (D.subtractBounded a b) (Err "Underflow")
+                        Expect.equal (D.subtractBounded a b) (Err Underflow)
                 , test "division bounded Ok" <|
                     \_ ->
                         let
@@ -252,7 +253,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat0 0
                         in
-                        Expect.equal (D.divideBounded a b) (Err "Divide by zero")
+                        Expect.equal (D.divideBounded a b) (Err DivisionByZero)
                 , test "division bounded Overflow" <|
                     \_ ->
                         let
@@ -262,7 +263,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat0 -1
                         in
-                        Expect.equal (D.divideBounded a b) (Err "Overflow")
+                        Expect.equal (D.divideBounded a b) (Err Overflow)
                 , test "division bounded Underflow" <|
                     \_ ->
                         let
@@ -272,7 +273,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat0 -1
                         in
-                        Expect.equal (D.divideBounded a b) (Err "Underflow")
+                        Expect.equal (D.divideBounded a b) (Err Underflow)
                 , test "multiply bounded OK" <|
                     \_ ->
                         let
@@ -292,7 +293,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat3 2
                         in
-                        Expect.equal (D.multiplyBounded a b) (Err "Overflow")
+                        Expect.equal (D.multiplyBounded a b) (Err Overflow)
                 , test "multiply bounded Underflow" <|
                     \_ ->
                         let
@@ -302,7 +303,7 @@ suite =
                             b =
                                 D.fromInt RoundTowardsZero nat3 2
                         in
-                        Expect.equal (D.multiplyBounded a b) (Err "Underflow")
+                        Expect.equal (D.multiplyBounded a b) (Err Underflow)
                 ]
             ]
         , describe "Rounding"

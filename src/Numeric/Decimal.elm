@@ -53,6 +53,7 @@ module Numeric.Decimal exposing
 
 -}
 
+import Numeric.ArithmeticError as ArithmeticError exposing (ArithmeticError(..))
 import Numeric.Decimal.BoundedArithmetic as Arithmetic
 import Numeric.Decimal.Rounding as Rounding exposing (RoundingAlgorythm)
 import Numeric.Integer exposing (maxBound, minBound, quotRem)
@@ -294,7 +295,7 @@ scaleUp k (Decimal r s p) =
 
 {-| Increase the precision of a `Decimal` while checking for `Overflow`/`Underflow`, use `roundDecimal` if inverse is desired.
 -}
-scaleUpBounded : Nat -> Decimal s Int -> Result String (Decimal s Int)
+scaleUpBounded : Nat -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 scaleUpBounded k (Decimal r s p) =
     Arithmetic.fromIntBounded (10 ^ Nat.toInt (Nat.subtract k s))
         |> Result.andThen (Arithmetic.multiplyBounded p)
@@ -328,10 +329,10 @@ multiply (Decimal r s1 d1) (Decimal _ s2 d2) =
 
 {-| Divide two Decimals. Operation can fail if divisor is zero.
 -}
-divide : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
+divide : Decimal s Int -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 divide (Decimal r s d1) (Decimal _ _ d2) =
     if d2 == 0 then
-        Err "Divide by zero"
+        Err DivisionByZero
 
     else
         Rational.ratio d1 d2
@@ -356,21 +357,21 @@ fromInt r s p =
 
 {-| Convert a `Decimal` to another `Decimal` while checking for `Overflow`/`Underflow`.
 -}
-fromDecimalBounded : Decimal s Int -> Result String (Decimal s Int)
+fromDecimalBounded : Decimal s Int -> Result ArithmeticError (Decimal s Int)
 fromDecimalBounded (Decimal r s d) =
     Arithmetic.fromIntBounded d |> Result.map (Decimal r s)
 
 
 {-| Convert `Rational` to `Decimal`.
 -}
-fromRational : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal s Int)
+fromRational : RoundingAlgorythm -> Nat -> Rational -> Result ArithmeticError (Decimal s Int)
 fromRational r s rational =
     let
         den =
             Rational.toDenominator rational
     in
     if den == 0 then
-        Err "Divide by zero"
+        Err DivisionByZero
 
     else
         let
@@ -387,14 +388,14 @@ fromRational r s rational =
 
 {-| Convert from `Rational` to `Decimal` while checking for `Overflow`/`Underflow`.
 -}
-fromRationalBounded : RoundingAlgorythm -> Nat -> Rational -> Result String (Decimal s Int)
+fromRationalBounded : RoundingAlgorythm -> Nat -> Rational -> Result ArithmeticError (Decimal s Int)
 fromRationalBounded r s rational =
     let
         den =
             Rational.toDenominator rational
     in
     if den == 0 then
-        Err "Divide by zero"
+        Err DivisionByZero
 
     else
         let
@@ -418,31 +419,31 @@ toRational (Decimal _ s d) =
 
 {-| Add two Decimals while checking for `Overflow`/`Underflow`.
 -}
-addBounded : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
+addBounded : Decimal s Int -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 addBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
     Arithmetic.addBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
 {-| Subtract one Decimal from another while checking for `Overflow`/`Underflow`.
 -}
-subtractBounded : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
+subtractBounded : Decimal s Int -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 subtractBounded (Decimal r1 s1 d1) (Decimal _ _ d2) =
     Arithmetic.subtractBounded d1 d2 |> Result.map (Decimal r1 s1)
 
 
 {-| Multiply two Decimal while checking for `Overflow`/`Underflow`.
 -}
-multiplyBounded : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
+multiplyBounded : Decimal s Int -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
     let
         c =
             d1 * d2
     in
     if c > maxBound then
-        Err "Overflow"
+        Err Overflow
 
     else if c < minBound then
-        Err "Underflow"
+        Err Underflow
 
     else
         Decimal r (Nat.add s1 s2) c
@@ -452,17 +453,17 @@ multiplyBounded (Decimal r s1 d1) (Decimal _ s2 d2) =
 
 {-| Divide two Decimals while checking for `Overflow`/`Underflow` and `Division by zero`.
 -}
-divideBounded : Decimal s Int -> Decimal s Int -> Result String (Decimal s Int)
+divideBounded : Decimal s Int -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 divideBounded (Decimal r s d1) (Decimal _ _ d2) =
     if d2 == 0 then
-        Err "Divide by zero"
+        Err DivisionByZero
 
     else
         Rational.ratioBounded d1 d2
             |> Result.andThen (fromRationalBounded r s)
 
 
-fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result String (Decimal s Int)
+fromIntsScaleBounded : RoundingAlgorythm -> Nat -> Int -> Int -> Result ArithmeticError (Decimal s Int)
 fromIntsScaleBounded r s x y =
     (x * (10 ^ Nat.toInt s)) + y |> Arithmetic.fromIntBounded |> Result.map (Decimal r s)
 
@@ -504,14 +505,14 @@ toString (Decimal _ s p) =
 
 {-| Parse `String` to `Decimal` while chacking for formatting and `Overflow`/`Underflow`.
 -}
-fromString : RoundingAlgorythm -> Nat -> String -> Result String (Decimal s Int)
+fromString : RoundingAlgorythm -> Nat -> String -> Result ArithmeticError (Decimal s Int)
 fromString r s str =
     Parser.run (parseDecimalBounded r s) str
-        |> Result.mapError deadEndsToString
+        |> Result.mapError deadEndsToError
 
 
-deadEndsToString : List Parser.DeadEnd -> String
-deadEndsToString =
+deadEndsToError : List Parser.DeadEnd -> ArithmeticError
+deadEndsToError =
     let
         endToString e =
             case e.problem of
@@ -521,7 +522,7 @@ deadEndsToString =
                 _ ->
                     ""
     in
-    List.foldl (\e a -> a ++ endToString e) ""
+    List.foldl (\e a -> a ++ endToString e) "" >> ArithmeticError.parse
 
 
 parseDecimalBounded : RoundingAlgorythm -> Nat -> Parser (Decimal s Int)
@@ -538,7 +539,7 @@ parseDecimalBounded r s =
                         Parser.succeed d
 
                     Err e ->
-                        Parser.problem e
+                        Parser.problem (ArithmeticError.toString e)
             )
 
 

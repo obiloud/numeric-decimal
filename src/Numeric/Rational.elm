@@ -47,6 +47,7 @@ module Numeric.Rational exposing
 
 -}
 
+import Numeric.ArithmeticError exposing (ArithmeticError(..))
 import Numeric.Integer exposing (div, even, gcd, maxBound, minBound)
 
 
@@ -260,7 +261,7 @@ toFloat (Rational n d) =
 
 {-| Forms the ratio of two integers while checking for `Overflow`/`Underflow`.
 -}
-ratioBounded : Int -> Int -> Result String Rational
+ratioBounded : Int -> Int -> Result ArithmeticError Rational
 ratioBounded n d =
     let
         gcd_ =
@@ -273,10 +274,10 @@ ratioBounded n d =
             div d gcd_
     in
     if num > maxBound || den > maxBound then
-        Err "Overflow"
+        Err Overflow
 
     else if num < minBound || den < minBound then
-        Err "Underflow"
+        Err Underflow
 
     else
         Ok (Rational num den)
@@ -284,34 +285,34 @@ ratioBounded n d =
 
 {-| Adds two Rationals while checking for `Overflow`/`Underflow`.
 -}
-addBounded : Rational -> Rational -> Result String Rational
+addBounded : Rational -> Rational -> Result ArithmeticError Rational
 addBounded (Rational n1 d1) (Rational n2 d2) =
     ratioBounded ((n1 * d2) + (n2 * d1)) (d1 * d2)
 
 
 {-| Subtract one Rational from another while checking for `Overflow`/`Underflow`.
 -}
-subtractBounded : Rational -> Rational -> Result String Rational
+subtractBounded : Rational -> Rational -> Result ArithmeticError Rational
 subtractBounded (Rational n1 d1) (Rational n2 d2) =
     ratioBounded ((n1 * d2) - (n2 * d1)) (d1 * d2)
 
 
 {-| Multiply two Rationals while checking for `Overflow`/`Underflow`.
 -}
-multiplyBounded : Rational -> Rational -> Result String Rational
+multiplyBounded : Rational -> Rational -> Result ArithmeticError Rational
 multiplyBounded (Rational n1 d1) (Rational n2 d2) =
     ratioBounded (n1 * n2) (d1 * d2)
 
 
 {-| Divide two Rationals while checking for `Overflow`/`Underflow`.
 -}
-divideBounded : Rational -> Rational -> Result String Rational
+divideBounded : Rational -> Rational -> Result ArithmeticError Rational
 divideBounded (Rational n1 d1) (Rational n2 d2) =
     ratioBounded (n1 * d2) (d1 * n2)
 
 
 {-| Rase `Rational` to the power while checking for `Overflow`/`Underflow`
 -}
-powerBounded : Int -> Rational -> Result String Rational
+powerBounded : Int -> Rational -> Result ArithmeticError Rational
 powerBounded pow (Rational n d) =
     ratioBounded (n ^ pow) d

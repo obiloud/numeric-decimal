@@ -5,10 +5,11 @@ module Numeric.Decimal.BoundedArithmetic exposing
     , subtractBounded
     )
 
+import Numeric.ArithmeticError exposing (ArithmeticError(..))
 import Numeric.Integer exposing (maxBound, minBound, quot, signum)
 
 
-addBounded : Int -> Int -> Result String Int
+addBounded : Int -> Int -> Result ArithmeticError Int
 addBounded x y =
     let
         signX =
@@ -21,32 +22,32 @@ addBounded x y =
             signX == signY
     in
     if sameSign && signX == 1 && x > maxBound - y then
-        Err "Overflow"
+        Err Overflow
 
     else if sameSign && signX == -1 && x < minBound - y then
-        Err "Underflow"
+        Err Underflow
 
     else
         Ok (x + y)
 
 
-subtractBounded : Int -> Int -> Result String Int
+subtractBounded : Int -> Int -> Result ArithmeticError Int
 subtractBounded x y =
     let
         signY =
             signum y
     in
     if signY == -1 && x > maxBound + y then
-        Err "Overflow"
+        Err Overflow
 
     else if signY == 1 && x < minBound + y then
-        Err "Underflow"
+        Err Underflow
 
     else
         Ok (x - y)
 
 
-multiplyBounded : Int -> Int -> Result String Int
+multiplyBounded : Int -> Int -> Result ArithmeticError Int
 multiplyBounded x y =
     let
         signY =
@@ -60,16 +61,16 @@ multiplyBounded x y =
 
         eitherOverUnder =
             if signum x == signY then
-                Err "Overflow"
+                Err Overflow
 
             else
-                Err "Underflow"
+                Err Underflow
     in
     if signY == -1 && y == -1 && x == minBound then
-        Err "Overflow"
+        Err Overflow
 
     else if signum x == -1 && x == -1 && y == minBound then
-        Err "Overflow"
+        Err Overflow
 
     else if signY == 1 && (minBoundQuotY > x || x > maxBoundQuotY) then
         eitherOverUnder
@@ -81,13 +82,13 @@ multiplyBounded x y =
         Ok (x * y)
 
 
-fromIntBounded : Int -> Result String Int
+fromIntBounded : Int -> Result ArithmeticError Int
 fromIntBounded x =
     if x > maxBound then
-        Err "Overflow"
+        Err Overflow
 
     else if x < minBound then
-        Err "Underflow"
+        Err Underflow
 
     else
         Ok x
