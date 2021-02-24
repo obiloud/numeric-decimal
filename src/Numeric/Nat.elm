@@ -1,6 +1,6 @@
 module Numeric.Nat exposing
     ( Nat
-    , succeed, unwrap
+    , fromInt, toInt
     , add, subtract
     , nat0, nat1, nat2, nat3, nat4, nat5, successor
     )
@@ -15,7 +15,7 @@ module Numeric.Nat exposing
 
 # Methods
 
-@docs succeed, unwrap
+@docs fromInt, toInt
 
 
 # Arithmetic
@@ -38,15 +38,15 @@ type Nat
 
 {-| Nat from Int
 -}
-succeed : Int -> Nat
-succeed =
+fromInt : Int -> Nat
+fromInt =
     abs >> Nat
 
 
-{-| Unwrap Nat
+{-| toInt Nat
 -}
-unwrap : Nat -> Int
-unwrap (Nat x) =
+toInt : Nat -> Int
+toInt (Nat x) =
     x
 
 
@@ -75,7 +75,7 @@ successor (Nat x) =
 -}
 nat0 : Nat
 nat0 =
-    succeed 0
+    fromInt 0
 
 
 {-| Nat 1

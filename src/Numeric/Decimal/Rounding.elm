@@ -75,7 +75,7 @@ roundDown : Nat -> Int -> Int
 roundDown e c =
     let
         b =
-            10 ^ Nat.unwrap e
+            10 ^ Nat.toInt e
 
         ( q, r ) =
             quotRem c b
@@ -89,14 +89,14 @@ roundDown e c =
 
 roundToZero : Nat -> Int -> Int
 roundToZero e c =
-    c // (10 ^ Nat.unwrap e)
+    c // (10 ^ Nat.toInt e)
 
 
 roundHalfEven : Nat -> Int -> Int
 roundHalfEven s c =
     let
         e =
-            Nat.unwrap s
+            Nat.toInt s
 
         b =
             10 ^ e
