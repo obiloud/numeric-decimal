@@ -16,7 +16,7 @@ module Numeric.Rational exposing
 @docs Rational
 
 
-# Crate Rational
+# Build ratio
 
 @docs ratio, ratioBounded
 

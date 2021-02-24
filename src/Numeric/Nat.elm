@@ -13,7 +13,7 @@ module Numeric.Nat exposing
 @docs Nat
 
 
-# Methods
+# Conversion
 
 @docs fromInt, toInt
 
@@ -23,7 +23,7 @@ module Numeric.Nat exposing
 @docs add, subtract
 
 
-# primitives
+# Primitives
 
 @docs nat0, nat1, nat2, nat3, nat4, nat5, successor
 

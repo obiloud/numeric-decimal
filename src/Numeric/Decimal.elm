@@ -65,6 +65,10 @@ import Parser exposing ((|.), (|=), Parser)
 
 The `s` type variable is for a phantom type and it is here to provide type level safety of arithmetic operations on Decimals.
 There is nothing on the type level that is restricting you from adding two decimals with different scaling parameter.
+
+This could result in something you didn't anticipate. Precision and rounding strategy of the left operand will be used for the resulting decimal.
+The second operand is not scaled or rounded down to match the first operand (i.e. `1.2 + 1.25 == 14.5`).
+
 But there is a way out of this with the help of a custom phantom type:
 
     type TwoDecimals
