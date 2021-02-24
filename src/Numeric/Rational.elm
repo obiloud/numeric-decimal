@@ -47,7 +47,7 @@ module Numeric.Rational exposing
 
 -}
 
-import Numeric.Integer exposing (div, even, maxBound, minBound)
+import Numeric.Integer exposing (div, even, gcd, maxBound, minBound)
 
 
 {-| Arbitrary-precision rational numbers, represented as a ratio of two `Int` values.
@@ -68,19 +68,10 @@ fromInt n =
 ratio : Int -> Int -> Rational
 ratio n d =
     let
-        gcd =
-            greatestCommonDenominator n d
+        gcd_ =
+            gcd n d
     in
-    Rational (div n gcd) (div d gcd)
-
-
-greatestCommonDenominator : Int -> Int -> Int
-greatestCommonDenominator a b =
-    if a == 0 then
-        b
-
-    else
-        greatestCommonDenominator (remainderBy a b) a
+    Rational (div n gcd_) (div d gcd_)
 
 
 {-| Add two Rationals.
@@ -272,14 +263,14 @@ toFloat (Rational n d) =
 ratioBounded : Int -> Int -> Result String Rational
 ratioBounded n d =
     let
-        gcd =
-            greatestCommonDenominator n d
+        gcd_ =
+            gcd n d
 
         num =
-            div n gcd
+            div n gcd_
 
         den =
-            div d gcd
+            div d gcd_
     in
     if num > maxBound || den > maxBound then
         Err "Overflow"
