@@ -1,11 +1,11 @@
 module Numeric.Decimal exposing
     ( Decimal
     , succeed, map, map2, andMap
-    , fromInt, fromDecimalBounded, fromRational, fromRationalBounded, toRational, withRounding
+    , fromInt, fromDecimalBounded, fromRational, fromRationalBounded, toRational, withRounding, toFloat
     , fromString, toString
     , toInt, toNumerator, toDenominator, splitDecimal
     , getPrecision, roundDecimal, scaleUp, scaleUpBounded
-    , add, subtract, multiply, divide
+    , negate, abs, add, subtract, multiply, divide
     , addBounded, subtractBounded, multiplyBounded, divideBounded
     )
 
@@ -24,7 +24,7 @@ module Numeric.Decimal exposing
 
 # Conversion
 
-@docs fromInt, fromDecimalBounded, fromRational, fromRationalBounded, toRational, withRounding
+@docs fromInt, fromDecimalBounded, fromRational, fromRationalBounded, toRational, withRounding, toFloat
 
 
 # Parsing and Printing
@@ -44,7 +44,7 @@ module Numeric.Decimal exposing
 
 # Simple arithmetic
 
-@docs add, subtract, multiply, divide
+@docs negate, abs, add, subtract, multiply, divide
 
 
 # Bounded arithmetic
@@ -306,6 +306,20 @@ scaleUpBounded k (Decimal r s p) =
 -- ARITHMETIC
 
 
+{-| Unary negation
+-}
+negate : Decimal s Int -> Decimal s Int
+negate (Decimal r s p) =
+    Decimal r s (p * -1)
+
+
+{-| Absolute value
+-}
+abs : Decimal s Int -> Decimal s Int
+abs (Decimal r s p) =
+    Decimal r s (Basics.abs p)
+
+
 {-| Add two Decimals.
 -}
 add : Decimal s Int -> Decimal s Int -> Decimal s Int
@@ -415,6 +429,13 @@ fromRationalBounded r s rational =
 toRational : Decimal s Int -> Rational
 toRational (Decimal _ s d) =
     Rational.ratio d (10 ^ Nat.toInt s)
+
+
+{-| Converting `Decimal` to `Float`
+-}
+toFloat : Decimal s Int -> Float
+toFloat =
+    toRational >> Rational.toFloat
 
 
 {-| Add two Decimals while checking for `Overflow`/`Underflow`.
@@ -544,16 +565,16 @@ parseDecimalBounded r s =
 
 
 toCoefficient : (Int -> Int) -> String -> String -> ( Int, Int )
-toCoefficient negate decimal fractional =
+toCoefficient negateValue decimal fractional =
     if String.isEmpty fractional then
         String.toInt decimal
-            |> Maybe.map (negate >> (\x -> ( x, 0 )))
+            |> Maybe.map (negateValue >> (\x -> ( x, 0 )))
             |> Maybe.withDefault ( 0, 0 )
 
     else
         Maybe.map2 Tuple.pair
-            (String.toInt decimal |> Maybe.map negate)
-            (String.toInt fractional |> Maybe.map negate)
+            (String.toInt decimal |> Maybe.map negateValue)
+            (String.toInt fractional |> Maybe.map negateValue)
             |> Maybe.withDefault ( 0, 0 )
 
 
