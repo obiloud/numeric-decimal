@@ -1,7 +1,7 @@
 module Numeric.Nat exposing
     ( Nat
-    , fromInt, toInt
-    , add, subtract
+    , fromIntAbs, fromIntOrZero, toInt
+    , add
     , nat0, nat1, nat2, nat3, nat4, nat5, successor
     )
 
@@ -15,12 +15,12 @@ module Numeric.Nat exposing
 
 # Conversion
 
-@docs fromInt, toInt
+@docs fromIntAbs, fromIntOrZero, toInt
 
 
 # Arithmetic
 
-@docs add, subtract
+@docs add
 
 
 # Primitives
@@ -36,11 +36,32 @@ type Nat
     = Nat Int
 
 
-{-| Nat from Int
+{-| Nat from `Int` absolute value.
+
+    fromIntAbs 2 -- (Nat 2)
+
+    fromIntAbs -3 -- (Nat 3)
+
 -}
-fromInt : Int -> Nat
-fromInt =
+fromIntAbs : Int -> Nat
+fromIntAbs =
     abs >> Nat
+
+
+{-| Nat from positive `Int`s, otherwise 0
+
+    fromIntAbs 2 -- (Nat 2)
+
+    fromIntAbs -3 -- (Nat 0)
+
+-}
+fromIntOrZero : Int -> Nat
+fromIntOrZero x =
+    if x > 0 then
+        Nat x
+
+    else
+        nat0
 
 
 {-| toInt Nat
@@ -57,13 +78,6 @@ add (Nat x) (Nat y) =
     Nat (x + y)
 
 
-{-| Subtract one Nat from another.
--}
-subtract : Nat -> Nat -> Nat
-subtract (Nat x) (Nat y) =
-    Nat (x - y)
-
-
 {-| Increment by 1
 -}
 successor : Nat -> Nat
@@ -75,7 +89,7 @@ successor (Nat x) =
 -}
 nat0 : Nat
 nat0 =
-    fromInt 0
+    fromIntAbs 0
 
 
 {-| Nat 1

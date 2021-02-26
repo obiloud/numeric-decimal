@@ -257,7 +257,7 @@ withRounding r (Decimal _ s p) =
 -}
 roundDecimal : Nat -> Decimal s Int -> Decimal s Int
 roundDecimal k (Decimal r s d) =
-    Rounding.getRounder r (Nat.subtract s k) d |> Decimal r k
+    Rounding.getRounder r (Nat.toInt s - Nat.toInt k |> Nat.fromIntOrZero) d |> Decimal r k
 
 
 {-| Get precision of the Decimal (number of fractional digits)
@@ -290,14 +290,14 @@ getPrecision (Decimal _ s _) =
 -}
 scaleUp : Nat -> Decimal s Int -> Decimal s Int
 scaleUp k (Decimal r s p) =
-    Decimal r k (p * (10 ^ Nat.toInt (Nat.subtract k s)))
+    Decimal r k (p * (10 ^ (Nat.toInt k - Nat.toInt s)))
 
 
 {-| Increase the precision of a `Decimal` while checking for `Overflow`/`Underflow`, use `roundDecimal` if inverse is desired.
 -}
 scaleUpBounded : Nat -> Decimal s Int -> Result ArithmeticError (Decimal s Int)
 scaleUpBounded k (Decimal r s p) =
-    Arithmetic.fromIntBounded (10 ^ Nat.toInt (Nat.subtract k s))
+    Arithmetic.fromIntBounded (10 ^ (Nat.toInt k - Nat.toInt s))
         |> Result.andThen (Arithmetic.multiplyBounded p)
         |> Result.map (Decimal r k)
 
@@ -419,7 +419,7 @@ fromRationalBounded r s rational =
         Rational.ratioBounded d 1
             |> Result.andThen (Rational.multiplyBounded rational)
             |> Result.map Rational.truncate
-            |> Result.map (succeed r (Nat.add s (Nat.fromInt 1)))
+            |> Result.map (succeed r (Nat.add s (Nat.fromIntOrZero 1)))
             |> Result.map (roundDecimal s)
             |> Result.andThen fromDecimalBounded
 
