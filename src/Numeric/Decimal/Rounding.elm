@@ -17,7 +17,7 @@ module Numeric.Decimal.Rounding exposing
 
 -}
 
-import Numeric.Integer exposing (odd, quotRem, signum)
+import Numeric.Integer exposing (odd, quotRem, signum, divMod)
 import Numeric.Nat as Nat exposing (Nat)
 
 
@@ -102,7 +102,7 @@ roundHalfEven s c =
             10 ^ e
 
         ( q, r ) =
-            quotRem c b
+            divMod c b
                 |> Tuple.mapSecond ((*) 2)
     in
     if e == 0 then
