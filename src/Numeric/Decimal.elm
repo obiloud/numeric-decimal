@@ -91,14 +91,14 @@ But there is a way out of this with the help of a custom phantom type:
 
         y = dollars 210
     in
-    D.add x y
+    Decimal.add x y
 
     -- TYPE MISMATCH ----- ~/decimal/tests/DecimalTest.elm
 
     -- The 2nd argument to `add` is not what I expect:
 
-    -- 105| D.add x y
-    --              ^
+    -- 105| Decimal.add x y
+    --                    ^
     -- This `y` value is a:
 
     --     Decimal Dollars Int
