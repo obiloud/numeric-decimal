@@ -29,6 +29,16 @@ pennies =
 --     Decimal.succeed RoundTowardsZero nat0
 
 
+int32 : Int
+int32 =
+    2 ^ 31 - 1
+
+
+int32negative : Int
+int32negative =
+    -2 ^ 31 - 1
+
+
 suite : Test
 suite =
     describe "Decimal specs"
@@ -307,7 +317,39 @@ suite =
                 ]
             ]
         , describe "Rounding"
-            [ describe "HalfToEven"
+            [ describe "RoundDown"
+                [ test "Round down" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString RoundDown nat1 (String.fromInt int32 ++ ".2")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt int32 |> Ok)
+                , test "Round down negative" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString RoundDown nat1 (String.fromInt int32negative ++ ".2")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt (int32negative - 1) |> Ok)
+                ]
+            , describe "RoundTowardsZero"
+                [ test "Round to zero" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString RoundTowardsZero nat1 (String.fromInt int32 ++ ".2")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt int32 |> Ok)
+                , test "Round to zero negative" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString RoundTowardsZero nat1 (String.fromInt int32negative ++ ".2")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt int32negative |> Ok)
+                ]
+            , describe "HalfToEven"
                 [ test "Round half even 1.25 - one decimal" <|
                     \_ ->
                         let
@@ -339,9 +381,6 @@ suite =
                 , test "Round half even to positive signed 32bit integer" <|
                     \_ ->
                         let
-                            int32 =
-                                2 ^ 31 - 1
-
                             x =
                                 Decimal.fromString HalfToEven nat2 (String.fromInt int32 ++ ".50")
                         in
@@ -349,13 +388,10 @@ suite =
                 , test "Round half even to negative signed 32bit integer" <|
                     \_ ->
                         let
-                            int32 =
-                                -2 ^ 31 - 1
-
                             x =
-                                Decimal.fromString HalfToEven nat2 (String.fromInt int32 ++ ".50")
+                                Decimal.fromString HalfToEven nat2 (String.fromInt int32negative ++ ".50")
                         in
-                        Expect.equal (Result.map (Decimal.roundDecimal nat0) x) (Decimal.succeed HalfToEven nat0 (int32 - 1) |> Ok)
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0) x) (Decimal.succeed HalfToEven nat0 (int32negative - 1) |> Ok)
                 ]
             ]
         ]

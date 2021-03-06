@@ -17,7 +17,7 @@ module Numeric.Decimal.Rounding exposing
 
 -}
 
-import Numeric.Integer exposing (odd, quotRem, signum)
+import Numeric.Integer exposing (odd, quot, quotRem, signum)
 import Numeric.Nat as Nat exposing (Nat)
 
 
@@ -89,7 +89,7 @@ roundDown e c =
 
 roundToZero : Nat -> Int -> Int
 roundToZero e c =
-    c // (10 ^ Nat.toInt e)
+    quot c (10 ^ Nat.toInt e)
 
 
 roundHalfEven : Nat -> Int -> Int
