@@ -333,6 +333,22 @@ suite =
                         in
                         Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt (int32negative - 1) |> Ok)
                 ]
+            , describe "RoundUp"
+                [ test "Round up" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString RoundUp nat1 (String.fromInt int32 ++ ".2")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt (int32 + 1) |> Ok)
+                , test "Round up negative" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString RoundUp nat1 (String.fromInt int32negative ++ ".2")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) x) (String.fromInt int32negative |> Ok)
+                ]
             , describe "RoundTowardsZero"
                 [ test "Round to zero" <|
                     \_ ->

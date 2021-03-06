@@ -25,7 +25,7 @@ import Numeric.Nat as Nat exposing (Nat)
 -}
 type RoundingAlgorythm
     = RoundDown
-      -- | RoundUp
+    | RoundUp
     | RoundTowardsZero
       -- | RoundAwayFromZero
       -- | HalfUp
@@ -47,8 +47,9 @@ getRounder algorythm =
         RoundDown ->
             roundDown
 
-        -- RoundUp ->
-        --     roundToZero
+        RoundUp ->
+            roundUp
+
         RoundTowardsZero ->
             roundToZero
 
@@ -85,6 +86,22 @@ roundDown e c =
 
     else
         q - 1
+
+
+roundUp : Nat -> Int -> Int
+roundUp e c =
+    let
+        b =
+            10 ^ Nat.toInt e
+
+        ( q, r ) =
+            quotRem c b |> Debug.log "(q, r)"
+    in
+    if c <= 0 || r == 0 then
+        q
+
+    else
+        q + 1
 
 
 roundToZero : Nat -> Int -> Int
