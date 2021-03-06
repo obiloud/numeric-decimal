@@ -31,7 +31,7 @@ type RoundingAlgorythm
     | HalfUp
     | HalfDown
     | HalfTowardsZero
-      -- | HalfAwayFromZero
+    | HalfAwayFromZero
     | HalfToEven
 
 
@@ -65,8 +65,9 @@ getRounder algorythm =
         HalfTowardsZero ->
             roundHalfToZero
 
-        -- HalfAwayFromZero ->
-        --     roundToZero
+        HalfAwayFromZero ->
+            roundHalfAwayFromZero
+
         HalfToEven ->
             roundHalfEven
 
@@ -178,6 +179,32 @@ roundHalfToZero s c =
         q + 1
 
     else if signum r < 0 && abs r > b then
+        q - 1
+
+    else
+        q
+
+
+roundHalfAwayFromZero : Nat -> Int -> Int
+roundHalfAwayFromZero s c =
+    let
+        e =
+            Nat.toInt s
+
+        b =
+            10 ^ e
+
+        ( q, r ) =
+            quotRem c b
+                |> Tuple.mapSecond ((*) 2)
+    in
+    if e == 0 then
+        c
+
+    else if r >= b then
+        q + 1
+
+    else if signum r < 0 && abs r >= b then
         q - 1
 
     else
