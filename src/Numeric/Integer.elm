@@ -57,7 +57,7 @@ signum x =
         1
 
 
-{-| Truncate
+{-| `truncate x` returns the integer nearest `x` between zero and `x`
 -}
 truncate : Float -> Int
 truncate x =
