@@ -490,4 +490,48 @@ suite =
                         Expect.equal (Result.map (Decimal.roundDecimal nat0) x) (Decimal.succeed HalfToEven nat0 (int32negative - 1) |> Ok)
                 ]
             ]
+        , describe "HalfToOdd"
+            [ test "Round half odd 1.25 - one decimal" <|
+                \_ ->
+                    let
+                        a =
+                            Decimal.fromString HalfToOdd nat2 "1.25"
+                    in
+                    Expect.equal (Result.map (Decimal.roundDecimal nat1 >> Decimal.toString) a) (Ok "1.3")
+            , test "Round half odd 0.5 - integer " <|
+                \_ ->
+                    let
+                        a =
+                            Decimal.fromString HalfToOdd nat1 "0.5"
+                    in
+                    Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) a) (Ok "1")
+            , test "Round half odd 1.5 - integer " <|
+                \_ ->
+                    let
+                        a =
+                            Decimal.fromString HalfToOdd nat1 "1.5"
+                    in
+                    Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) a) (Ok "1")
+            , test "Round half odd 1.4 - integer " <|
+                \_ ->
+                    let
+                        a =
+                            Decimal.fromString HalfToOdd nat1 "1.4"
+                    in
+                    Expect.equal (Result.map (Decimal.roundDecimal nat0 >> Decimal.toString) a) (Ok "1")
+            , test "Round half odd to positive signed 32bit integer" <|
+                \_ ->
+                    let
+                        x =
+                            Decimal.fromString HalfToOdd nat2 (String.fromInt int32 ++ ".50")
+                    in
+                    Expect.equal (Result.map (Decimal.roundDecimal nat0) x) (Decimal.succeed HalfToOdd nat0 int32 |> Ok)
+            , test "Round half odd to negative signed 32bit integer" <|
+                \_ ->
+                    let
+                        x =
+                            Decimal.fromString HalfToOdd nat2 (String.fromInt int32negative ++ ".50")
+                    in
+                    Expect.equal (Result.map (Decimal.roundDecimal nat0) x) (Decimal.succeed HalfToOdd nat0 int32negative |> Ok)
+            ]
         ]

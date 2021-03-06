@@ -17,7 +17,7 @@ module Numeric.Decimal.Rounding exposing
 
 -}
 
-import Numeric.Integer exposing (odd, quot, quotRem, signum)
+import Numeric.Integer exposing (even, odd, quot, quotRem, signum)
 import Numeric.Nat as Nat exposing (Nat)
 
 
@@ -33,10 +33,7 @@ type RoundingAlgorythm
     | HalfTowardsZero
     | HalfAwayFromZero
     | HalfToEven
-
-
-
--- | HalfToOdd
+    | HalfToOdd
 
 
 {-| Returns rounding function matched by `RoundongAlgorythm`
@@ -71,10 +68,8 @@ getRounder algorythm =
         HalfToEven ->
             roundHalfEven
 
-
-
--- HalfToOdd ->
---     roundToZero
+        HalfToOdd ->
+            roundHalfOdd
 
 
 roundDown : Nat -> Int -> Int
@@ -131,6 +126,32 @@ roundAwayFromZero e c =
 
     else
         q + 1
+
+
+roundHalfDown : Nat -> Int -> Int
+roundHalfDown s c =
+    let
+        e =
+            Nat.toInt s
+
+        b =
+            10 ^ e
+
+        ( q, r ) =
+            quotRem c b
+                |> Tuple.mapSecond ((*) 2)
+    in
+    if e == 0 then
+        c
+
+    else if r > b then
+        q + 1
+
+    else if signum r < 0 && abs r >= b then
+        q - 1
+
+    else
+        q
 
 
 roundHalfUp : Nat -> Int -> Int
@@ -211,32 +232,6 @@ roundHalfAwayFromZero s c =
         q
 
 
-roundHalfDown : Nat -> Int -> Int
-roundHalfDown s c =
-    let
-        e =
-            Nat.toInt s
-
-        b =
-            10 ^ e
-
-        ( q, r ) =
-            quotRem c b
-                |> Tuple.mapSecond ((*) 2)
-    in
-    if e == 0 then
-        c
-
-    else if r > b then
-        q + 1
-
-    else if signum r < 0 && abs r >= b then
-        q - 1
-
-    else
-        q
-
-
 roundHalfEven : Nat -> Int -> Int
 roundHalfEven s c =
     let
@@ -254,6 +249,38 @@ roundHalfEven s c =
         c
 
     else if abs r == b && odd q then
+        q + signum r
+
+    else if abs r == b then
+        q
+
+    else if r > b then
+        q + 1
+
+    else if signum r < 0 && abs r > e then
+        q - 1
+
+    else
+        q
+
+
+roundHalfOdd : Nat -> Int -> Int
+roundHalfOdd s c =
+    let
+        e =
+            Nat.toInt s
+
+        b =
+            10 ^ e
+
+        ( q, r ) =
+            quotRem c b
+                |> Tuple.mapSecond ((*) 2)
+    in
+    if e == 0 then
+        c
+
+    else if abs r == b && even q then
         q + signum r
 
     else if abs r == b then
