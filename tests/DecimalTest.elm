@@ -336,6 +336,26 @@ suite =
                                 D.fromString HalfToEven nat1 "1.4"
                         in
                         Expect.equal (Result.map (D.roundDecimal nat0 >> D.toString) a) (Ok "1")
+                , test "Round half even to positive signed 32bit integer" <|
+                    \_ ->
+                        let
+                            int32 =
+                                2 ^ 31 - 1
+
+                            x =
+                                D.fromString HalfToEven nat2 (String.fromInt int32 ++ ".50")
+                        in
+                        Expect.equal (Result.map (D.roundDecimal nat0) x) (D.succeed HalfToEven nat0 (int32 + 1) |> Ok)
+                , test "Round half even to negative signed 32bit integer" <|
+                    \_ ->
+                        let
+                            int32 =
+                                -2 ^ 31 - 1
+
+                            x =
+                                D.fromString HalfToEven nat2 (String.fromInt int32 ++ ".50")
+                        in
+                        Expect.equal (Result.map (D.roundDecimal nat0) x) (D.succeed HalfToEven nat0 (int32 - 1) |> Ok)
                 ]
             ]
         ]

@@ -1,6 +1,6 @@
 module Numeric.Integer exposing
     ( maxBound, minBound
-    , quot, rem, div, mod, quotRem, divMod
+    , truncate, quot, rem, div, mod, quotRem, divMod
     , signum, even, odd, gcd, lcm
     )
 
@@ -14,7 +14,7 @@ module Numeric.Integer exposing
 
 # Integral
 
-@docs quot, rem, div, mod, quotRem, divMod
+@docs truncate, quot, rem, div, mod, quotRem, divMod
 
 
 # Numeric functions
@@ -57,6 +57,17 @@ signum x =
         1
 
 
+{-| Truncate
+-}
+truncate : Float -> Int
+truncate x =
+    if x < 0 then
+        Basics.ceiling x
+
+    else
+        Basics.floor x
+
+
 {-| Integer division truncated towards negative infinity.
 -}
 div : Int -> Int -> Int
@@ -68,7 +79,7 @@ div x y =
 -}
 quot : Int -> Int -> Int
 quot x y =
-    Basics.toFloat x / Basics.toFloat y |> Basics.truncate
+    Basics.toFloat x / Basics.toFloat y |> truncate
 
 
 {-| integer modulus, satisfying
