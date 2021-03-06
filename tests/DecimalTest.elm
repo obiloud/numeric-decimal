@@ -413,6 +413,22 @@ suite =
                         in
                         Expect.equal (Result.map (Decimal.roundDecimal nat1 >> Decimal.toString) x) (String.fromInt int32negative ++ ".3" |> Ok)
                 ]
+            , describe "HalfTowardsZero"
+                [ test "Round half to zero" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString HalfTowardsZero nat2 (String.fromInt int32 ++ ".25")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat1 >> Decimal.toString) x) (String.fromInt int32 ++ ".2" |> Ok)
+                , test "Round half to zero negative" <|
+                    \_ ->
+                        let
+                            x =
+                                Decimal.fromString HalfTowardsZero nat2 (String.fromInt int32negative ++ ".25")
+                        in
+                        Expect.equal (Result.map (Decimal.roundDecimal nat1 >> Decimal.toString) x) (String.fromInt int32negative ++ ".2" |> Ok)
+                ]
             , describe "HalfToEven"
                 [ test "Round half even 1.25 - one decimal" <|
                     \_ ->
