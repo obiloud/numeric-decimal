@@ -1,7 +1,7 @@
 {
     "type": "package",
     "name": "obiloud/numeric-decimal",
-    "summary": "Decimal point data type",
+    "summary": "Fixed point decimal data type",
     "license": "MIT",
     "version": "2.1.0",
     "exposed-modules": [
