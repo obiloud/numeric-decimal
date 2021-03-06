@@ -27,7 +27,7 @@ type RoundingAlgorythm
     = RoundDown
     | RoundUp
     | RoundTowardsZero
-      -- | RoundAwayFromZero
+    | RoundAwayFromZero
       -- | HalfUp
       -- | HalfDown
       -- | HalfTowardsZero
@@ -53,8 +53,9 @@ getRounder algorythm =
         RoundTowardsZero ->
             roundToZero
 
-        -- RoundAwayFromZero ->
-        --     roundToZero
+        RoundAwayFromZero ->
+            roundAwayFromZero
+
         -- HalfUp ->
         --     roundToZero
         -- HalfDown ->
@@ -95,7 +96,7 @@ roundUp e c =
             10 ^ Nat.toInt e
 
         ( q, r ) =
-            quotRem c b |> Debug.log "(q, r)"
+            quotRem c b
     in
     if c <= 0 || r == 0 then
         q
@@ -107,6 +108,25 @@ roundUp e c =
 roundToZero : Nat -> Int -> Int
 roundToZero e c =
     quot c (10 ^ Nat.toInt e)
+
+
+roundAwayFromZero : Nat -> Int -> Int
+roundAwayFromZero e c =
+    let
+        b =
+            10 ^ Nat.toInt e
+
+        ( q, r ) =
+            quotRem c b
+    in
+    if c == 0 || r == 0 then
+        q
+
+    else if c < 0 then
+        q - 1
+
+    else
+        q + 1
 
 
 roundHalfEven : Nat -> Int -> Int
