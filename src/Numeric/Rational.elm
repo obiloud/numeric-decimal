@@ -107,7 +107,7 @@ divide (Rational n1 d1) (Rational n2 d2) =
 -}
 power : Int -> Rational -> Rational
 power pow (Rational n d) =
-    ratio (n ^ pow) d
+    ratio (n ^ pow) (d ^ pow)
 
 
 {-| Inverse numerator and denominator of the `Rational`.
